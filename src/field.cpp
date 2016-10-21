@@ -142,6 +142,9 @@ void Field::checkField(int row, int col) {
 		this->destroyBalls(row, col, stackedBalls[row][col]->getColor());
 		this->collapseField();
 	}
+	while (this->checkAndDestroy()) {
+		this->collapseField();
+	}
 }
 
 bool Field::checkForStacking(int row, int col) {
@@ -198,7 +201,49 @@ bool Field::checkPosForDestroying(int row, int col) {
 	return isDestroyable;
 }
 
+bool Field::checkAndDestroy() {
+	bool destroyed = false;
+	int i, j, color, sameColorCount;
+
+	for (i = 0; i < STACK_HEIGHT; i++) {
+		sameColorCount = 0;
+		color = -1;
+		for (j = 0; j < COL_COUNT; j++) {
+			if (stackedBalls[i][j] == NULL) {
+				color = -1;
+				sameColorCount = 0;
+				continue;
+			}
+			if (color < 0) {
+				color = stackedBalls[i][j]->getColor();
+			}
+			if (stackedBalls[i][j]->getColor() == color) {
+				sameColorCount++;
+			} else {
+				if (sameColorCount > 2) {
+					this->destroyBalls(i, j - 1, color);
+					destroyed = true;
+				}
+				// reset count, reset color for new init
+				sameColorCount = 0;
+				if (j < (COL_COUNT - 1)) {
+					// only reset color when not last row
+					color = -1;
+				}
+			}
+		}
+		if (sameColorCount > 2) {
+			// most right column
+			this->destroyBalls(i, COL_COUNT - 1, color);
+			destroyed = true;
+		}
+	}
+
+	return destroyed;
+}
+
 void Field::destroyBalls(int row, int col, int color) {
+	//printf("color: %d\n", color);
 	int i;
 	if (stackedBalls[row][col] != NULL) {
 		stackedBalls[row][col]->destroy();

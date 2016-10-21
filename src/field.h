@@ -26,6 +26,7 @@ class Field {
 		bool checkForStacking(int row, int col);
 		void stackBalls(int row, int col);
 		bool checkPosForDestroying(int row, int col);
+		bool checkAndDestroy();
 		void destroyBalls(int row, int col, int color);
 		void collapseField();
 		void collapseStack(int row, int col);
