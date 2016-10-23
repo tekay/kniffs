@@ -1,4 +1,5 @@
 #include "field.h"
+#include <sstream>
 
 Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
 	this->renderer = gRenderer;
@@ -12,6 +13,15 @@ Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
 	//newBalls = malloc(size_of(Ball) * NEW_BALLS_ROWS * ROW_LENGTH);
 	//stackedBalls = malloc(size_of(Ball) * STACK_HEIGHT * ROW_LENGTH);
 	int i, j;
+	// init text textures for weights and weights
+	for (i = 0; i < COL_COUNT; i++) {
+		weights[i] = 0;
+		weightTextures[i] = new LTexture(gRenderer);
+		weightTextures[i]->setFont(gFont);
+		this->setWeightForWeightTexture(i);
+	}
+
+
 	// init top ball row)
 	for (i = 0; i < NEW_BALLS_ROWS; i++) {
 		for (j = 0; j < ROW_LENGTH; j++) {
@@ -68,6 +78,10 @@ void Field::render() {
 			}
 		}
 	}
+	for (i = 0; i < COL_COUNT; i++) {
+		// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there + 20 for scale + 40 for mid
+		weightTextures[i]->render(LEFT_OFFSET + 15 + i * Ball::BALL_WIDTH, 310 + STACK_HEIGHT * Ball::BALL_HEIGHT);
+	}
 }
 
 Ball* Field::makeNewBall() {
@@ -122,7 +136,8 @@ int Field::dropBall(Ball* ball, int col) {
 		if (stackedBalls[i][col] == NULL) {
 			stackedBalls[i][col] = ball;
 			this->setBallToPos(i, col);
-			//stackedBalls[i][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, 250 + (STACK_HEIGHT - i) * Ball::BALL_HEIGHT);
+			this->weights[col] += ball->getWeight();
+			this->setWeightForWeightTexture(col);
 			return i;
 		}
 	}
@@ -246,6 +261,10 @@ void Field::destroyBalls(int row, int col, int color) {
 	//printf("color: %d\n", color);
 	int i;
 	if (stackedBalls[row][col] != NULL) {
+		// remove weight from stack
+		this->weights[col] -= stackedBalls[row][col]->getWeight();
+		this->setWeightForWeightTexture(col);
+
 		stackedBalls[row][col]->destroy();
 		delete stackedBalls[row][col];
 		stackedBalls[row][col] = NULL;
@@ -305,4 +324,15 @@ void Field::collapseStack(int row, int col) {
 void Field::setBallToPos(int row, int col) {
 	// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there
 	stackedBalls[row][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, 250 + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
+}
+
+void Field::setWeightForWeightTexture(int col) {
+	SDL_Color textColor = {0, 0, 0};
+	std::stringstream ss1;
+	ss1 << weights[col];
+	const char *chWeight = ss1.str().c_str();
+	if (!weightTextures[col]->loadFromRenderedText(chWeight, textColor)) {
+		printf("failed to load from rendered text\n");
+	}
+	//weightTextures[col]->render(LEFT_OFFSET + 15 + col * Ball::BALL_WIDTH, 310 + STACK_HEIGHT * Ball::BALL_HEIGHT);
 }

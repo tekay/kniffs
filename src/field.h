@@ -32,8 +32,11 @@ class Field {
 		void collapseStack(int row, int col);
 
 		void setBallToPos(int row, int col);
+		void setWeightForWeightTexture(int col);
 
 		Loader *loader;
+		LTexture *weightTextures[COL_COUNT];
+		int weights[COL_COUNT];
 
 		// new ball row
 		Ball *newBalls[NEW_BALLS_ROWS][ROW_LENGTH];
