@@ -18,6 +18,16 @@ class Field {
 		static const int NEW_BALLS_ROWS = 2;
 		static const int STACK_HEIGHT = 10;
 		static const int LEFT_OFFSET = 15;
+		static const int TOP_HEIGHT = 60;
+		static const int BALLS_PLACED_TEXTURE_X_POS = 120;
+		static const int BALLS_PLACED_TEXTURE_Y_POS = 0;
+		static const int BALLS_PLACED_TEXT_TEXTURE_X_POS = 10;
+		static const int BALLS_PLACED_TEXT_TEXTURE_Y_POS = 0;
+		static const int POINTS_TEXTURE_X_POS = 325;
+		static const int POINTS_TEXTURE_Y_POS = 0;
+		static const int POINTS_TEXT_TEXTURE_X_POS = 200;
+		static const int POINTS_TEXT_TEXTURE_Y_POS = 0;
+
 		Ball* makeNewBall();
 		Ball* getBallFromNew(int col);
 		// returns whether balls has place
@@ -27,22 +37,28 @@ class Field {
 		void stackBalls(int row, int col);
 		bool checkPosForDestroying(int row, int col);
 		bool checkAndDestroy();
-		void destroyBalls(int row, int col, int color);
+		void destroyBalls(int row, int col, int color, int *count, int *sumWeight);
 		void collapseField();
 		void collapseStack(int row, int col);
 
+		void calculateAndAddPoints(int count, int weight);
+
 		void setBallToPos(int row, int col);
+		void setTextFromIntForTexture(LTexture *texture, int val);
 		void setWeightForWeightTexture(int col);
 
-		Loader *loader;
 		LTexture *weightTextures[COL_COUNT];
-		int weights[COL_COUNT];
-
+		LTexture *ballsPlacedTexture;
+		LTexture *ballsPlacedTextTexture;
+		LTexture *pointsTexture;
+		LTexture *pointsTextTexture;
 		// new ball row
 		Ball *newBalls[NEW_BALLS_ROWS][ROW_LENGTH];
 		// ball stacks
 		Ball *stackedBalls[STACK_HEIGHT][ROW_LENGTH];
 
+		Loader *loader;
+		int weights[COL_COUNT];
 		int level;
 		int ballsPlaced;
 		int points;

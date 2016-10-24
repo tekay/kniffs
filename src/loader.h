@@ -9,8 +9,7 @@ class Loader {
 		const int LOADER_MOVE_WIDTH = 50;
 		const int LOADER_WIDTH = 80;
 		const int LOADER_HEIGHT = 80;
-		const int LOADER_Y_POS = 100;
-
+		const int LOADER_Y_POS = 160;
 		Loader(SDL_Renderer *gRenderer);
 		~Loader();
 

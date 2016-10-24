@@ -21,12 +21,32 @@ Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
 		this->setWeightForWeightTexture(i);
 	}
 
+	SDL_Color textColor = {0, 0, 0};
+
+	ballsPlacedTextTexture = new LTexture(gRenderer);
+	ballsPlacedTextTexture->setFont(gFont);
+	if (!ballsPlacedTextTexture->loadFromRenderedText("balls:", textColor)) {
+		printf("failed to load from rendered text\n");
+	}
+	pointsTextTexture = new LTexture(gRenderer);
+	pointsTextTexture->setFont(gFont);
+	if (!pointsTextTexture->loadFromRenderedText("points:", textColor)) {
+		printf("failed to load from rendered text\n");
+	}
+
+	ballsPlacedTexture = new LTexture(gRenderer);
+	ballsPlacedTexture->setFont(gFont);
+	this->setTextFromIntForTexture(ballsPlacedTexture, ballsPlaced);
+	pointsTexture = new LTexture(gRenderer);
+	pointsTexture->setFont(gFont);
+	this->setTextFromIntForTexture(pointsTexture, points);
+
 
 	// init top ball row)
 	for (i = 0; i < NEW_BALLS_ROWS; i++) {
 		for (j = 0; j < ROW_LENGTH; j++) {
 			newBalls[i][j] = makeNewBall();
-			newBalls[i][j]->setPos(LEFT_OFFSET + j * Ball::BALL_WIDTH, i * Ball::BALL_HEIGHT);
+			newBalls[i][j]->setPos(LEFT_OFFSET + j * Ball::BALL_WIDTH, TOP_HEIGHT + i * Ball::BALL_HEIGHT);
 		}
 	}
 	// init ball stacks
@@ -78,10 +98,16 @@ void Field::render() {
 			}
 		}
 	}
+	// render ball weight
 	for (i = 0; i < COL_COUNT; i++) {
 		// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there + 20 for scale + 40 for mid
-		weightTextures[i]->render(LEFT_OFFSET + 15 + i * Ball::BALL_WIDTH, 310 + STACK_HEIGHT * Ball::BALL_HEIGHT);
+		weightTextures[i]->render(LEFT_OFFSET + 15 + i * Ball::BALL_WIDTH, TOP_HEIGHT + 300 + STACK_HEIGHT * Ball::BALL_HEIGHT);
 	}
+
+	ballsPlacedTextTexture->render(BALLS_PLACED_TEXT_TEXTURE_X_POS, BALLS_PLACED_TEXT_TEXTURE_Y_POS);
+	pointsTextTexture->render(POINTS_TEXT_TEXTURE_X_POS, POINTS_TEXT_TEXTURE_Y_POS);
+	ballsPlacedTexture->render(BALLS_PLACED_TEXTURE_X_POS, BALLS_PLACED_TEXTURE_Y_POS);
+	pointsTexture->render(POINTS_TEXTURE_X_POS, POINTS_TEXTURE_Y_POS);
 }
 
 Ball* Field::makeNewBall() {
@@ -93,7 +119,7 @@ Ball* Field::getBallFromNew(int col) {
 	newBalls[1][col] = newBalls[0][col];
 	newBalls[1][col]->setYPos(newBalls[1][col]->getYPos() + Ball::BALL_HEIGHT);
 	newBalls[0][col] = makeNewBall();
-	newBalls[0][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, 0);
+	newBalls[0][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT);
 	return retBall;
 }
 
@@ -117,6 +143,7 @@ int Field::handleKeyEvents(SDL_Event &e) {
 					// everything's fine
 					if (dropRow < STACK_HEIGHT) {
 						this->ballsPlaced++;
+						this->setTextFromIntForTexture(ballsPlacedTexture, ballsPlaced);
 						checkField(dropRow, currentCol);
 					} else {
 						retVal = 1;
@@ -152,9 +179,12 @@ void Field::checkField(int row, int col) {
 		row -= 4;
 	}
 
-	// need to rewrite, checkForDestroying needs to get through the whole stackedBalls for chain destroying
 	if (this->checkPosForDestroying(row, col)) {
-		this->destroyBalls(row, col, stackedBalls[row][col]->getColor());
+		int count = 0;
+		int sumWeight = 0;
+		this->destroyBalls(row, col, stackedBalls[row][col]->getColor(), &count, &sumWeight);
+		this->calculateAndAddPoints(count, sumWeight);
+		printf("count: %d\n", count);
 		this->collapseField();
 	}
 	while (this->checkAndDestroy()) {
@@ -236,7 +266,10 @@ bool Field::checkAndDestroy() {
 				sameColorCount++;
 			} else {
 				if (sameColorCount > 2) {
-					this->destroyBalls(i, j - 1, color);
+					int count = 0;
+					int weight = 0;
+					this->destroyBalls(i, j - 1, color, &count, &weight);
+					this->calculateAndAddPoints(count, weight);
 					destroyed = true;
 				}
 				// reset count, reset color for new init
@@ -249,7 +282,10 @@ bool Field::checkAndDestroy() {
 		}
 		if (sameColorCount > 2) {
 			// most right column
-			this->destroyBalls(i, COL_COUNT - 1, color);
+			int count = 0;
+			int weight = 0;
+			this->destroyBalls(i, COL_COUNT - 1, color, &count, &weight);
+			this->calculateAndAddPoints(count, weight);
 			destroyed = true;
 		}
 	}
@@ -257,7 +293,7 @@ bool Field::checkAndDestroy() {
 	return destroyed;
 }
 
-void Field::destroyBalls(int row, int col, int color) {
+void Field::destroyBalls(int row, int col, int color, int *count, int *sumWeight) {
 	//printf("color: %d\n", color);
 	int i;
 	if (stackedBalls[row][col] != NULL) {
@@ -265,28 +301,32 @@ void Field::destroyBalls(int row, int col, int color) {
 		this->weights[col] -= stackedBalls[row][col]->getWeight();
 		this->setWeightForWeightTexture(col);
 
+		// add weight and increase count
+		(*count)++;
+		*sumWeight += stackedBalls[row][col]->getWeight();
+
 		stackedBalls[row][col]->destroy();
 		delete stackedBalls[row][col];
 		stackedBalls[row][col] = NULL;
 
 		if ((row + 1) < STACK_HEIGHT) {
 			if (stackedBalls[row + 1][col] != NULL && stackedBalls[row + 1][col]->getColor() == color) {
-				this->destroyBalls(row + 1, col, color);
+				this->destroyBalls(row + 1, col, color, count, sumWeight);
 			}
 		}
 		if ((col + 1) < COL_COUNT) {
 			if (stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getColor() == color) {
-				this->destroyBalls(row, col + 1, color);
+				this->destroyBalls(row, col + 1, color, count, sumWeight);
 			}
 		}
 		if ((row - 1) >= 0) {
 			if (stackedBalls[row - 1][col] != NULL && stackedBalls[row - 1][col]->getColor() == color) {
-				this->destroyBalls(row - 1, col, color);
+				this->destroyBalls(row - 1, col, color, count, sumWeight);
 			}
 		}
 		if ((col - 1) >= 0) {
 			if (stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getColor() == color) {
-				this->destroyBalls(row, col - 1, color);
+				this->destroyBalls(row, col - 1, color, count, sumWeight);
 			}
 		}
 	}
@@ -321,9 +361,24 @@ void Field::collapseStack(int row, int col) {
 	}
 }
 
+void Field::calculateAndAddPoints(int count, int weight) {
+	points = count * weight;
+	this->setTextFromIntForTexture(pointsTexture, points);
+}
+
 void Field::setBallToPos(int row, int col) {
 	// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there
-	stackedBalls[row][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, 250 + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
+	stackedBalls[row][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT + 250 + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
+}
+
+void Field::setTextFromIntForTexture(LTexture *texture, int val) {
+	SDL_Color textColor = {0, 0, 0};
+	std::stringstream ss1;
+	ss1 << val;
+	const char *chWeight = ss1.str().c_str();
+	if (!texture->loadFromRenderedText(chWeight, textColor)) {
+		printf("failed to load from rendered text\n");
+	}
 }
 
 void Field::setWeightForWeightTexture(int col) {
