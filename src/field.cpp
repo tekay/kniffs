@@ -142,7 +142,10 @@ int Field::handleKeyEvents(SDL_Event &e) {
 					int dropRow = this->dropBall(ball, currentCol);
 					// everything's fine
 					if (dropRow < STACK_HEIGHT) {
-						this->ballsPlaced++;
+						if(++this->ballsPlaced % 50 == 0) {
+							// drop a star
+							level++;
+						};
 						this->setTextFromIntForTexture(ballsPlacedTexture, ballsPlaced);
 						checkField(dropRow, currentCol);
 					} else {
@@ -184,7 +187,6 @@ void Field::checkField(int row, int col) {
 		int sumWeight = 0;
 		this->destroyBalls(row, col, stackedBalls[row][col]->getColor(), &count, &sumWeight);
 		this->calculateAndAddPoints(count, sumWeight);
-		printf("count: %d\n", count);
 		this->collapseField();
 	}
 	while (this->checkAndDestroy()) {
