@@ -125,7 +125,7 @@ Ball* Field::getBallFromNew(int col) {
 
 int Field::handleKeyEvents(SDL_Event &e) {
 	int retVal = 0;
-	if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+	if (e.type == SDL_KEYDOWN) {
 		//Adjust the velocity
 		switch (e.key.keysym.sym) {
 			case SDLK_LEFT:
