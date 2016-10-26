@@ -31,6 +31,20 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
 		case 5:
 			chColor = "teal";
 			break;
+		case 6:
+			chColor = "purple";
+			break;
+		case 7:
+			chColor = "darkgreen";
+			break;
+		case 8:
+			chColor = "darkred";
+			break;
+		case 9:
+			chColor = "darkblue";
+			break;
+		default:
+			chColor = "grey";
 	}
 	std::stringstream ss;
 	ss << "resources/ball_" << chColor << ".png";
@@ -112,5 +126,5 @@ void Ball::collapse() {
 }
 
 void Ball::destroy() {
-	
+
 }
