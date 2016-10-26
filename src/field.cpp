@@ -45,7 +45,7 @@ Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
 	// init top ball row)
 	for (i = 0; i < NEW_BALLS_ROWS; i++) {
 		for (j = 0; j < ROW_LENGTH; j++) {
-			newBalls[i][j] = makeNewBall();
+			newBalls[i][j] = (Slot*) makeNewBall();
 			newBalls[i][j]->setPos(LEFT_OFFSET + j * Ball::BALL_WIDTH, TOP_HEIGHT + i * Ball::BALL_HEIGHT);
 		}
 	}
@@ -115,10 +115,10 @@ Ball* Field::makeNewBall() {
 }
 
 Ball* Field::getBallFromNew(int col) {
-	Ball* retBall = newBalls[1][col];
+	Ball* retBall = (Ball*)newBalls[1][col];
 	newBalls[1][col] = newBalls[0][col];
 	newBalls[1][col]->setYPos(newBalls[1][col]->getYPos() + Ball::BALL_HEIGHT);
-	newBalls[0][col] = makeNewBall();
+	newBalls[0][col] = (Slot*) makeNewBall();
 	newBalls[0][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT);
 	return retBall;
 }
@@ -164,7 +164,7 @@ int Field::dropBall(Ball* ball, int col) {
 	int i, j;
 	for (i = 0; i < STACK_HEIGHT; i++) {
 		if (stackedBalls[i][col] == NULL) {
-			stackedBalls[i][col] = ball;
+			stackedBalls[i][col] = (Slot*)ball;
 			this->setBallToPos(i, col);
 			this->weights[col] += ball->getWeight();
 			this->setTextFromIntForTexture(weightTextures[col], weights[col]);

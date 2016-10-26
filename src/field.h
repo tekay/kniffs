@@ -4,6 +4,7 @@
 #include "ltexture.h"
 #include "loader.h"
 #include "ball.h"
+#include "slot.h"
 
 class Field {
 	public:
@@ -52,9 +53,9 @@ class Field {
 		LTexture *pointsTexture;
 		LTexture *pointsTextTexture;
 		// new ball row
-		Ball *newBalls[NEW_BALLS_ROWS][ROW_LENGTH];
+		Slot *newBalls[NEW_BALLS_ROWS][ROW_LENGTH];
 		// ball stacks
-		Ball *stackedBalls[STACK_HEIGHT][ROW_LENGTH];
+		Slot *stackedBalls[STACK_HEIGHT][ROW_LENGTH];
 
 		Loader *loader;
 		int weights[COL_COUNT];

@@ -1,4 +1,5 @@
 #include "ball.h"
+#include "slot.h"
 #include "ltexture.h"
 #include <sstream>
 #include <string>
@@ -65,6 +66,14 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
 Ball::~Ball() {
 	delete this->texture;
 	delete this->textTexture;
+}
+
+void Ball::move() {
+	
+}
+
+int Ball::getType() {
+	return SLOT_BALL;
 }
 
 void Ball::render() {

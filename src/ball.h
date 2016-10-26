@@ -1,15 +1,18 @@
 #ifndef BALL_H__
 #define BALL_H__
 
+#include "slot.h"
 #include "ltexture.h"
 
-class Ball {
+class Ball : Slot {
 	public:
 		static const int BALL_WIDTH = 50;
 		static const int BALL_HEIGHT = 50;
 
 		Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color);
 		~Ball();
+
+		int getType();
 
 		void move();
 		void render();
