@@ -362,7 +362,7 @@ void Field::collapseStack(int row, int col) {
 }
 
 void Field::calculateAndAddPoints(int count, int weight) {
-	points = count * weight;
+	points += count * weight;
 	this->setTextFromIntForTexture(pointsTexture, points);
 }
 
