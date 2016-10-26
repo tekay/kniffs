@@ -45,7 +45,6 @@ class Field {
 
 		void setBallToPos(int row, int col);
 		void setTextFromIntForTexture(LTexture *texture, int val);
-		void setWeightForWeightTexture(int col);
 
 		LTexture *weightTextures[COL_COUNT];
 		LTexture *ballsPlacedTexture;

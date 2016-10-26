@@ -18,7 +18,7 @@ Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
 		weights[i] = 0;
 		weightTextures[i] = new LTexture(gRenderer);
 		weightTextures[i]->setFont(gFont);
-		this->setWeightForWeightTexture(i);
+		this->setTextFromIntForTexture(weightTextures[i], weights[i]);
 	}
 
 	SDL_Color textColor = {0, 0, 0};
@@ -167,7 +167,7 @@ int Field::dropBall(Ball* ball, int col) {
 			stackedBalls[i][col] = ball;
 			this->setBallToPos(i, col);
 			this->weights[col] += ball->getWeight();
-			this->setWeightForWeightTexture(col);
+			this->setTextFromIntForTexture(weightTextures[col], weights[col]);
 			return i;
 		}
 	}
@@ -301,7 +301,8 @@ void Field::destroyBalls(int row, int col, int color, int *count, int *sumWeight
 	if (stackedBalls[row][col] != NULL) {
 		// remove weight from stack
 		this->weights[col] -= stackedBalls[row][col]->getWeight();
-		this->setWeightForWeightTexture(col);
+		//this->setWeightForWeightTexture(col);
+		this->setTextFromIntForTexture(weightTextures[col], weights[col]);
 
 		// add weight and increase count
 		(*count)++;
@@ -381,15 +382,4 @@ void Field::setTextFromIntForTexture(LTexture *texture, int val) {
 	if (!texture->loadFromRenderedText(chWeight, textColor)) {
 		printf("failed to load from rendered text\n");
 	}
-}
-
-void Field::setWeightForWeightTexture(int col) {
-	SDL_Color textColor = {0, 0, 0};
-	std::stringstream ss1;
-	ss1 << weights[col];
-	const char *chWeight = ss1.str().c_str();
-	if (!weightTextures[col]->loadFromRenderedText(chWeight, textColor)) {
-		printf("failed to load from rendered text\n");
-	}
-	//weightTextures[col]->render(LEFT_OFFSET + 15 + col * Ball::BALL_WIDTH, 310 + STACK_HEIGHT * Ball::BALL_HEIGHT);
 }
