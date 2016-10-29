@@ -1,4 +1,5 @@
 #include "field.h"
+#include <iostream>
 #include <sstream>
 
 Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
@@ -26,12 +27,12 @@ Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
 	ballsPlacedTextTexture = new LTexture(gRenderer);
 	ballsPlacedTextTexture->setFont(gFont);
 	if (!ballsPlacedTextTexture->loadFromRenderedText("balls:", textColor)) {
-		printf("failed to load from rendered text\n");
+		std::cout << "failed to load from rendered text" << std::endl;
 	}
 	pointsTextTexture = new LTexture(gRenderer);
 	pointsTextTexture->setFont(gFont);
 	if (!pointsTextTexture->loadFromRenderedText("points:", textColor)) {
-		printf("failed to load from rendered text\n");
+		std::cout << "failed to load from rendered text" << std::endl;
 	}
 
 	ballsPlacedTexture = new LTexture(gRenderer);
@@ -175,7 +176,7 @@ int Field::dropBall(Ball* ball, int col) {
 }
 
 void Field::checkField(int row, int col) {
-	//printf("check for new ball at row: %d, and col: %d\n", row, col);
+	//std::cout << "check for new ball at row: " << row << " and col: " << col << std::endl;
 	if (this->checkForStacking(row, col)) {
 		this->stackBalls(row, col);
 		// current ball of interest is stacked, so 4 places down
@@ -296,7 +297,7 @@ bool Field::checkAndDestroy() {
 }
 
 void Field::destroyBalls(int row, int col, int color, int *count, int *sumWeight) {
-	//printf("color: %d\n", color);
+	//std::cout << "color: " << color << std::endl;
 	int i;
 	if (stackedBalls[row][col] != NULL) {
 		// remove weight from stack
@@ -380,6 +381,6 @@ void Field::setTextFromIntForTexture(LTexture *texture, int val) {
 	ss1 << val;
 	const char *chWeight = ss1.str().c_str();
 	if (!texture->loadFromRenderedText(chWeight, textColor)) {
-		printf("failed to load from rendered text\n");
+		std::cout << "failed to load from rendered text" << std::endl;
 	}
 }

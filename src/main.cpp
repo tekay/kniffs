@@ -5,6 +5,7 @@ and may not be redistributed without written permission.*/
 /*#include "lbutton.h"
 #include "loader.h"*/
 #include "field.h"
+#include <iostream>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 430;
@@ -36,24 +37,24 @@ bool init() {
 
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+		std::cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << std::endl;
 		success = false;
 	}	else {
 		//Set texture filtering to linear
 		if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))	{
-			printf( "Warning: Linear texture filtering not enabled!" );
+			std::cout << "Warning: Linear texture filtering not enabled!" << std::endl;
 		}
 
 		//Create window
 		gWindow = SDL_CreateWindow( "Kniffs", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
 		if (gWindow == NULL) {
-			printf( "Window could not be created! SDL Error: %s\n", SDL_GetError());
+			std::cout << "Window could not be created! SDL Error: " << SDL_GetError() << std::endl;
 			success = false;
 		}	else {
 			//Create renderer for window
 			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
 			if (gRenderer == NULL) {
-				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
+				std::cout << "Renderer could not be created! SDL Error: " << SDL_GetError() << std::endl;
 				success = false;
 			}	else {
 				//Initialize renderer color
@@ -62,12 +63,12 @@ bool init() {
 				//Initialize PNG loading
 				int imgFlags = IMG_INIT_PNG;
 				if (!(IMG_Init(imgFlags) & imgFlags)) {
-					printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+					std::cout << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << std::endl;
 					success = false;
 				}
 				//Initialize SDL_ttf
 				if (TTF_Init() == -1) {
-					printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+					std::cout << "SDL_ttf could not initialize! SDL_ttf Error: " << TTF_GetError() << std::endl;
 					success = false;
 				}
 			}
@@ -82,7 +83,7 @@ bool loadMedia() {
 	bool success = true;
 	gFont = TTF_OpenFont("resources/fonts/Roboto-Bold.ttf", 28);
 	if (gFont == NULL) {
-		printf("Failed to load font, error: %s\n", TTF_GetError());
+		std::cout << "Failed to load font, error: " << TTF_GetError() << std::endl;
 		success = false;
 	}
 
@@ -110,11 +111,11 @@ void close() {
 int main(int argc, char* args[]) {
 	//Start up SDL and create window
 	if (!init()) {
-		printf( "Failed to initialize!\n" );
+		std::cout << "Failed to initialize!" << std::endl;
 	} else {
 		//Load media
 		if (!loadMedia()) {
-			printf( "Failed to load media!\n" );
+			std::cout << "Failed to load media!" << std::endl;
 		} else {
 			field = new Field(gRenderer, gFont);
 			//Main loop flag
