@@ -37,4 +37,4 @@ class Ball {
 		TTF_Font *font;
 		SDL_Color textColor;
 };
-#endif BALL_H__
+#endif // BALL_H__
