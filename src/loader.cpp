@@ -1,9 +1,10 @@
 #include "loader.h"
+#include <iostream>
 
 Loader::Loader(SDL_Renderer *gRenderer) {
 	this->texture = new LTexture(gRenderer);
 	if (!this->texture->loadFromFile("resources/loader.png")) {
-		printf("error loading loader texture\n");
+		std::cout << "error loading loader texture" << std::endl;
 		exit(13);
 	}
 	xPos = 0;
@@ -40,7 +41,7 @@ void Loader::render() {
 }
 
 void Loader::giveBall(Ball *ball) {
-	//printf("loader has ball w/ color: %d\n", ball->getColor());
+	//std::cout << "loader has ball w/ color: " << ball->getColor() << std::endl;
 	this->ball = ball;
 	this->ball->setPos(this->xPos + 15, LOADER_Y_POS + 15);
 }

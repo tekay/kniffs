@@ -57,7 +57,7 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
 	ss1 << this->weight;
 	const char *chWeight = ss1.str().c_str();
 	if (!this->textTexture->loadFromRenderedText(chWeight, textColor)) {
-		printf("failed to load from rendered text\n");
+		std::cout << "failed to load from rendered text" << std::endl;
 	}
 }
 
@@ -102,7 +102,7 @@ void Ball::setWeight(int w) {
 	ss1 << this->weight;
 	const char *chWeight = ss1.str().c_str();
 	if (!this->textTexture->loadFromRenderedText(chWeight, textColor)) {
-		printf("failed to load from rendered text\n");
+		std::cout << "failed to load from rendered text" << std::endl;
 	}
 }
 
@@ -116,7 +116,7 @@ void Ball::addWeight(int w) {
 	ss1 << this->weight;
 	const char *chWeight = ss1.str().c_str();
 	if (!this->textTexture->loadFromRenderedText(chWeight, textColor)) {
-		printf("failed to load from rendered text\n");
+		std::cout << "failed to load from rendered text" << std::endl;
 	}
 }
 
