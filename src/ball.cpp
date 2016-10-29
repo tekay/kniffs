@@ -1,4 +1,5 @@
 #include "ball.h"
+#include <iostream>
 #include <sstream>
 
 Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
@@ -9,7 +10,7 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
 	this->textTexture = new LTexture(gRenderer);
 	this->color = newColor;
 	this->weight = newWeight;
-	char* chColor;
+	std::string chColor;
 	switch (newColor) {
 		case 0:
 			chColor = "blue";
@@ -47,7 +48,7 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
 	std::stringstream ss;
 	ss << "resources/ball_" << chColor << ".png";
 	if (!this->texture->loadFromFile(ss.str())) {
-		printf("error loading ball %s", chColor);
+		std::cout << "error loading ball " << chColor << std::endl;
 		exit(13);
 	}
 	this->textTexture->setFont(gFont);
