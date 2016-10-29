@@ -38,4 +38,4 @@ class LButton {
         LButtonSprite mCurrentSprite;
 				LTexture *texture;
 };
-#endif LBUTTON_H__
+#endif // LBUTTON_H__

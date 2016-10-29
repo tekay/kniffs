@@ -1,7 +1,5 @@
 #include "ball.h"
-#include "ltexture.h"
 #include <sstream>
-#include <string>
 
 Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
 	int newColor = (rand() % (int)(level));

@@ -24,4 +24,4 @@ class Loader {
 		Ball *ball;
 		LTexture *texture;
 };
-#endif LOADER_H__
+#endif // LOADER_H__

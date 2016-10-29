@@ -42,4 +42,4 @@ class LTexture {
 		int mWidth;
 		int mHeight;
 };
-#endif LTEXTURE_H__
+#endif // LTEXTURE_H__

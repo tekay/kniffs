@@ -1,12 +1,6 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
-#include <stdio.h>
-#include <string>
-#include <cmath>
 
 #include "lbutton.h"
-#include "ltexture.h"
 
 LButton::LButton(LTexture *texture) {
 	mPosition.x = 0;

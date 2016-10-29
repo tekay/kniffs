@@ -1,5 +1,4 @@
 #include "loader.h"
-#include "ltexture.h"
 
 Loader::Loader(SDL_Renderer *gRenderer) {
 	this->texture = new LTexture(gRenderer);

@@ -66,4 +66,4 @@ class Field {
 		TTF_Font *font;
 };
 
-#endif FIELD_H__
+#endif // FIELD_H__
