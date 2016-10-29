@@ -7,23 +7,10 @@
 
 class Slot {
 	public:
+		static const int BALL = 0;
+		static const int SCALE = 1;
+		static const int SPECIAL = 2;
 		virtual int getType() = 0;
-
-		virtual void move() = 0;
-		virtual void render() = 0;
-		virtual void setXPos(int x) = 0;
-		virtual int getXPos() = 0;
-		virtual void setYPos(int y) = 0;
-		virtual int getYPos() = 0;
-		virtual void setPos(int x, int y) = 0;
-		virtual int getColor() = 0;
-		virtual void setWeight(int w) = 0;
-		virtual int getWeight() = 0;
-		virtual void addWeight(int w) = 0;
-
-		// graphical stuff
-		virtual void collapse() = 0;
-		virtual void destroy() = 0;
 };
 
 #endif SLOT_H__

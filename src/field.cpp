@@ -46,8 +46,14 @@ Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
 	for (i = 0; i < NEW_BALLS_ROWS; i++) {
 		for (j = 0; j < ROW_LENGTH; j++) {
 			newBalls[i][j] = (Slot*) makeNewBall();
-			newBalls[i][j]->setPos(LEFT_OFFSET + j * Ball::BALL_WIDTH, TOP_HEIGHT + i * Ball::BALL_HEIGHT);
+			((Ball*)newBalls[i][j])->setPos(LEFT_OFFSET + j * Ball::BALL_WIDTH, TOP_HEIGHT + i * Ball::BALL_HEIGHT);
 		}
+	}
+	// init scales
+	for (i = 0; i < COL_COUNT; i = i + 2) {
+		scales[i] = new Scale(gRenderer);
+		stackedBalls[0][i] = (Slot*)scales[i];
+		stackedBalls[0][i + 1] = (Slot*)scales[i];
 	}
 	// init ball stacks
 	for (i = 0; i < STACK_HEIGHT; i++) {
@@ -86,7 +92,7 @@ void Field::render() {
 	for (i = 0; i < NEW_BALLS_ROWS; i++) {
 		for (j = 0; j < ROW_LENGTH; j++) {
 			if (newBalls[i][j] != NULL) {
-				newBalls[i][j]->render();
+				((Ball*)newBalls[i][j])->render();
 			}
 		}
 	}
@@ -94,7 +100,10 @@ void Field::render() {
 	for (i = 0; i < STACK_HEIGHT; i++) {
 		for (j = 0; j < ROW_LENGTH; j++) {
 			if (stackedBalls[i][j] != NULL) {
-				stackedBalls[i][j]->render();
+				switch (stackedBalls[i][j]->getType()) {
+					case Slot::BALL:
+						((Ball*)stackedBalls[i][j])->render();
+				}
 			}
 		}
 	}
@@ -117,9 +126,9 @@ Ball* Field::makeNewBall() {
 Ball* Field::getBallFromNew(int col) {
 	Ball* retBall = (Ball*)newBalls[1][col];
 	newBalls[1][col] = newBalls[0][col];
-	newBalls[1][col]->setYPos(newBalls[1][col]->getYPos() + Ball::BALL_HEIGHT);
+	((Ball*)newBalls[1][col])->setYPos(((Ball*)newBalls[1][col])->getYPos() + Ball::BALL_HEIGHT);
 	newBalls[0][col] = (Slot*) makeNewBall();
-	newBalls[0][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT);
+	((Ball*)newBalls[0][col])->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT);
 	return retBall;
 }
 
@@ -185,7 +194,7 @@ void Field::checkField(int row, int col) {
 	if (this->checkPosForDestroying(row, col)) {
 		int count = 0;
 		int sumWeight = 0;
-		this->destroyBalls(row, col, stackedBalls[row][col]->getColor(), &count, &sumWeight);
+		this->destroyBalls(row, col, ((Ball*)stackedBalls[row][col])->getColor(), &count, &sumWeight);
 		this->calculateAndAddPoints(count, sumWeight);
 		this->collapseField();
 	}
@@ -195,54 +204,63 @@ void Field::checkField(int row, int col) {
 }
 
 bool Field::checkForStacking(int row, int col) {
-	int color = stackedBalls[row][col]->getColor();
+	if (stackedBalls[row][col]->getType() != Slot::BALL) {
+		return false;
+	}
+	int color = ((Ball*)stackedBalls[row][col])->getColor();
 	int i;
 	int sameColor = 1;
 	// check for collapse (5 balls with same color)
 	// only check if stack has at least 5 balls
 	if (row >= 4) {
 		for (i = (row - 1); i >= (row - 4); i--) {
-			if (stackedBalls[i][col]->getColor() == color) {
+			if (stackedBalls[row][col]->getType() == Slot::BALL && ((Ball*)stackedBalls[i][col])->getColor() == color) {
 				sameColor++;
 			} else {
 				break;
 			}
 		}
 	}
-	return (sameColor == 5);
+	return (sameColor >= 5);
 }
 
 void Field::stackBalls(int row, int col) {
 	int sumWeight = 0;
 	int i;
 	for (i = row; i > (row - 4); i--) {
-		sumWeight += stackedBalls[i][col]->getWeight();
-		stackedBalls[i][col]->collapse();
+		sumWeight += ((Ball*)stackedBalls[i][col])->getWeight();
+		((Ball*)stackedBalls[i][col])->collapse();
 		delete stackedBalls[i][col];
 		stackedBalls[i][col] = NULL;
 	}
-	stackedBalls[row - 4][col]->addWeight(sumWeight);
+	((Ball*)stackedBalls[row - 4][col])->addWeight(sumWeight);
 }
 
 bool Field::checkPosForDestroying(int row, int col) {
 	// check for threeway (höhö)
 	bool isDestroyable = false;
-	int color = stackedBalls[row][col]->getColor();
+	int color = ((Ball*)stackedBalls[row][col])->getColor();
 
 	// xxo
 	if (col > 1
-		&& stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getColor() == color
-		&& stackedBalls[row][col - 2] != NULL && stackedBalls[row][col - 2]->getColor() == color)
+		&& stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getType() == Slot::BALL
+		&& ((Ball*)stackedBalls[row][col - 1])->getColor() == color
+		&& stackedBalls[row][col - 2] != NULL && stackedBalls[row][col - 2]->getType() == Slot::BALL
+		&& ((Ball*)stackedBalls[row][col - 2])->getColor() == color)
 		isDestroyable = true;
 	// xox
 	if (col > 0 && col < (COL_COUNT - 1)
-		&& stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getColor() == color
-		&& stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getColor() == color)
+		&& stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getType() == Slot::BALL
+		&& ((Ball*)stackedBalls[row][col - 1])->getColor() == color
+		&& stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getType() == Slot::BALL
+		&& ((Ball*)stackedBalls[row][col + 1])->getColor() == color)
 		isDestroyable = true;
 	// oxx
 	if (col < (COL_COUNT - 2)
-		&& stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getColor() == color
-		&& stackedBalls[row][col + 2] != NULL && stackedBalls[row][col + 2]->getColor() == color)
+		&& stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getType() == Slot::BALL
+		&& ((Ball*)stackedBalls[row][col + 1])->getColor() == color
+		&& stackedBalls[row][col + 2] != NULL && stackedBalls[row][col + 2]->getType() == Slot::BALL
+		&& ((Ball*)stackedBalls[row][col + 2])->getColor() == color)
 		isDestroyable = true;
 
 	return isDestroyable;
@@ -261,10 +279,15 @@ bool Field::checkAndDestroy() {
 				sameColorCount = 0;
 				continue;
 			}
-			if (color < 0) {
-				color = stackedBalls[i][j]->getColor();
+			if (stackedBalls[i][j]->getType() != Slot::BALL) {
+				color = -1;
+				sameColorCount = 0;
+				continue;
 			}
-			if (stackedBalls[i][j]->getColor() == color) {
+			if (color < 0) {
+				color = ((Ball*)stackedBalls[i][j])->getColor();
+			}
+			if (((Ball*)stackedBalls[i][j])->getColor() == color) {
 				sameColorCount++;
 			} else {
 				if (sameColorCount > 2) {
@@ -298,37 +321,41 @@ bool Field::checkAndDestroy() {
 void Field::destroyBalls(int row, int col, int color, int *count, int *sumWeight) {
 	//printf("color: %d\n", color);
 	int i;
-	if (stackedBalls[row][col] != NULL) {
+	if (stackedBalls[row][col] != NULL && stackedBalls[row][col]->getType() == Slot::BALL) {
 		// remove weight from stack
-		this->weights[col] -= stackedBalls[row][col]->getWeight();
+		this->weights[col] -= ((Ball*)stackedBalls[row][col])->getWeight();
 		//this->setWeightForWeightTexture(col);
 		this->setTextFromIntForTexture(weightTextures[col], weights[col]);
 
 		// add weight and increase count
 		(*count)++;
-		*sumWeight += stackedBalls[row][col]->getWeight();
+		*sumWeight += ((Ball*)stackedBalls[row][col])->getWeight();
 
-		stackedBalls[row][col]->destroy();
+		((Ball*)stackedBalls[row][col])->destroy();
 		delete stackedBalls[row][col];
 		stackedBalls[row][col] = NULL;
 
 		if ((row + 1) < STACK_HEIGHT) {
-			if (stackedBalls[row + 1][col] != NULL && stackedBalls[row + 1][col]->getColor() == color) {
+			if (stackedBalls[row + 1][col] != NULL && stackedBalls[row + 1][col]->getType() == Slot::BALL
+				&& ((Ball*)stackedBalls[row + 1][col])->getColor() == color) {
 				this->destroyBalls(row + 1, col, color, count, sumWeight);
 			}
 		}
 		if ((col + 1) < COL_COUNT) {
-			if (stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getColor() == color) {
+			if (stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getType() == Slot::BALL
+				&& ((Ball*)stackedBalls[row][col + 1])->getColor() == color) {
 				this->destroyBalls(row, col + 1, color, count, sumWeight);
 			}
 		}
 		if ((row - 1) >= 0) {
-			if (stackedBalls[row - 1][col] != NULL && stackedBalls[row - 1][col]->getColor() == color) {
+			if (stackedBalls[row - 1][col] != NULL && stackedBalls[row - 1][col]->getType() == Slot::BALL
+				&& ((Ball*)stackedBalls[row - 1][col])->getColor() == color) {
 				this->destroyBalls(row - 1, col, color, count, sumWeight);
 			}
 		}
 		if ((col - 1) >= 0) {
-			if (stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getColor() == color) {
+			if (stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getType() == Slot::BALL
+				&& ((Ball*)stackedBalls[row][col - 1])->getColor() == color) {
 				this->destroyBalls(row, col - 1, color, count, sumWeight);
 			}
 		}
@@ -356,7 +383,7 @@ void Field::collapseStack(int row, int col) {
 			if (grabRow > 0) {
 				stackedBalls[row][col] = stackedBalls[grabRow][col];
 				this->setBallToPos(row, col);
-				stackedBalls[grabRow][col]->collapse();
+				((Ball*)stackedBalls[grabRow][col])->collapse();
 				stackedBalls[grabRow][col] = NULL;
 			}
 		}
@@ -371,7 +398,10 @@ void Field::calculateAndAddPoints(int count, int weight) {
 
 void Field::setBallToPos(int row, int col) {
 	// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there
-	stackedBalls[row][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT + 250 + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
+	if (stackedBalls[row][col]->getType() != Slot::BALL) {
+		return;
+	}
+	((Ball*)stackedBalls[row][col])->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT + 250 + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
 }
 
 void Field::setTextFromIntForTexture(LTexture *texture, int val) {

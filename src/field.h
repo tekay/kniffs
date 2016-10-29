@@ -5,6 +5,7 @@
 #include "loader.h"
 #include "ball.h"
 #include "slot.h"
+#include "scale.h"
 
 class Field {
 	public:
@@ -52,6 +53,10 @@ class Field {
 		LTexture *ballsPlacedTextTexture;
 		LTexture *pointsTexture;
 		LTexture *pointsTextTexture;
+
+		// the scales
+		Scale *scales[COL_COUNT / 2];
+
 		// new ball row
 		Slot *newBalls[NEW_BALLS_ROWS][ROW_LENGTH];
 		// ball stacks
