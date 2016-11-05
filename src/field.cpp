@@ -10,6 +10,10 @@ Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont, int leftOffset, int topOf
 }
 
 Field::~Field() {
+	int i;
+	for (i = 0; i < SCALE_COUNT; i++) {
+		this->scales[i].reset();
+	}
 }
 
 void Field::render() {
@@ -20,13 +24,13 @@ void Field::render() {
 
 bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	std::array<int, 2> dropPos = this->getScaleAndColFromCol(col);
-	printf("scale: %d, col: %d\n", dropPos[0], dropPos[1]);
+	//printf("scale: %d, col: %d\n", dropPos[0], dropPos[1]);
 	std::shared_ptr<Event> event = this->scales[dropPos[0]]->dropBallAt(ball, dropPos[1]);
 	if (event->getType() == Event::LOSS) {
 		return false;
 	} else if (event->getType() == Event::THROW_BALL) {
 		int newDropCol = this->handleBallThrowing(event, col);
-		printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
+		//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
 		return this->dropBallAt(event->getBall(), newDropCol);
 	} else {
 		return true;

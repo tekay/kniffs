@@ -28,7 +28,14 @@ Scale::Scale(SDL_Renderer *gRenderer, TTF_Font *gFont, int leftOffset, int topOf
 }
 
 Scale::~Scale() {
-
+	this->texture.reset();
+	int i, j;
+	for (i = 0; i < COL_COUNT; i++) {
+		this->weightTextures[i].reset();
+		for (j = 0; j < STACK_HEIGHT; j++) {
+			this->stacks[i][j].reset();
+		}
+	}
 }
 
 std::shared_ptr<Ball> Scale::getBallAt(int col, int row) {
@@ -45,7 +52,7 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	int i;
 	for (i = this->firstBallSlot(col); i < STACK_HEIGHT; i++) {
 		if (!stacks[col][i]) {
-			printf("ball in row: %d\n", i);
+			//printf("ball in row: %d\n", i);
 			this->stacks[col][i] = ball;
 			this->stacks[col][i]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + this->BALL_AREA_HEIGHT -  i * Ball::BALL_HEIGHT);
 			dropRow = i;
@@ -59,14 +66,14 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 		this->stacking(col);
 		int oldStatus = this->status;
 		this->status = this->newStatus();
-		printf("new status: %d\n", this->status);
+		//printf("new status: %d\n", this->status);
 		// conditions for a flying ball
 		if ((oldStatus != this->status) && (this->status != 0)) {
 			if (this->status == 1) {
-				printf("%s\n", "ball throw to the left");
+				//printf("%s\n", "ball throw to the left");
 				std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(1);
 				if (maybeBall) {
-					printf("throw with ball\n");
+					//printf("throw with ball\n");
 					event->setType(Event::THROW_BALL);
 					event->setDirection(this->status);
 					event->setBall(maybeBall);
@@ -75,9 +82,9 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 				}
 			} else if (this->status == 2) {
 				std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(0);
-				printf("%s\n", "ball throw to the right");
+				//printf("%s\n", "ball throw to the right");
 				if (maybeBall) {
-					printf("throw with ball\n");
+					//printf("throw with ball\n");
 					event->setType(Event::THROW_BALL);
 					event->setDirection(this->status);
 					event->setBall(maybeBall);
@@ -156,7 +163,7 @@ void Scale::render() {
 
 // private functions
 bool Scale::relocateStacks(int oldStatus) {
-	printf("relocateStacks\n");
+	//printf("relocateStacks\n");
 	//frkn magic. some1 smarter than me needs to look at this.
 	bool allRight = true;
 	if (oldStatus == 0 && this->status == 1) {
