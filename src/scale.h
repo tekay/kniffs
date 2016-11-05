@@ -23,7 +23,9 @@ class Scale {
 		static const int COL_COUNT = 2;
 		static const int SCALE_TEXTURE_WIDTH = 100;
 		static const int SCALE_TEXTURE_HEIGHT = 110;
-		static const int SCALE_TOP_OFFSET = 500;
+		static const int BALL_AREA_HEIGHT = 500;
+		static const int SCALE_TOP_OFFSET = 450;
+		static const int SCALE_STATUS_COUNT = 3;
 
 		// functions
 		bool relocateStacks(int oldStatus);
@@ -42,6 +44,7 @@ class Scale {
 		int topOffset;
 
 		// graphics
+		SDL_Rect spriteClips[SCALE_STATUS_COUNT];
 		SDL_Renderer *renderer;
 		TTF_Font *font;
 		std::unique_ptr<LTexture> texture;

@@ -1,13 +1,21 @@
 #include "scale.h"
 
 Scale::Scale(SDL_Renderer *gRenderer, TTF_Font *gFont, int leftOffset, int topOffset) : renderer(gRenderer), font(gFont), leftOffset(leftOffset), topOffset(topOffset) {
+	int i, j;
 	this->status = 0;
 	this->texture = std::make_unique<LTexture>(gRenderer);
-	if (!this->texture->loadFromFile("resources/scale_neutral.png")) {
+	if (!this->texture->loadFromFile("resources/scales.png")) {
 		printf("error loading scale png\n");
 		exit(13);
+	} else {
+    //Set sprite clips
+		for (i = 0; i < this->SCALE_STATUS_COUNT; i++) {
+			this->spriteClips[i].x = i * 100;
+			this->spriteClips[i].y = 0;
+			this->spriteClips[i].w = 100;
+			this->spriteClips[i].h = 120;
+		}
 	}
-	int i, j;
 	for (i = 0; i < COL_COUNT; i++) {
 		this->weights[i] = 0;
 		this->weightTextures[i] = std::make_unique<LTexture>(gRenderer);
@@ -39,7 +47,7 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 		if (!stacks[col][i]) {
 			printf("ball in row: %d\n", i);
 			this->stacks[col][i] = ball;
-			this->stacks[col][i]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + SCALE_TOP_OFFSET -  i * Ball::BALL_HEIGHT);
+			this->stacks[col][i]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + this->BALL_AREA_HEIGHT -  i * Ball::BALL_HEIGHT);
 			dropRow = i;
 			break;
 		}
@@ -129,7 +137,8 @@ void Scale::stacking(int col) {
 }
 
 void Scale::render() {
-	this->texture->render(this->leftOffset, this->topOffset + SCALE_TOP_OFFSET);
+	SDL_Rect *clip = &this->spriteClips[this->status];
+	this->texture->render(this->leftOffset, this->topOffset + this->SCALE_TOP_OFFSET, clip);
 	// render weightTextures
 	int i, j;
 	for (i = 0; i < COL_COUNT; i++) {
