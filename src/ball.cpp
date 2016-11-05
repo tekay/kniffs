@@ -2,16 +2,12 @@
 #include <iostream>
 #include <sstream>
 
-Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
-	int newColor = (rand() % (int)(level));
-	int newWeight = (rand() % (int)(level + 1));
-	this->font = gFont;
-	this->texture = new LTexture(gRenderer);
-	this->textTexture = new LTexture(gRenderer);
-	this->color = newColor;
-	this->weight = newWeight;
+Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : renderer(gRenderer), font(gFont), color(color), weight(weight) {
+	SDL_Color textColor = {0, 0, 0};
+	this->texture = std::make_unique<LTexture>(gRenderer);
+	this->textTexture = std::make_unique<LTexture>(gRenderer);
 	std::string chColor;
-	switch (newColor) {
+	switch (this->color) {
 		case 0:
 			chColor = "blue";
 			break;
@@ -62,8 +58,8 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int level) {
 }
 
 Ball::~Ball() {
-	delete this->texture;
-	delete this->textTexture;
+	this->texture.reset();
+	this->textTexture.reset();
 }
 
 void Ball::render() {
@@ -80,7 +76,7 @@ int Ball::getXPos() {
 }
 
 void Ball::setYPos(int y) {
-	yPos = y;
+	this->yPos = y;
 }
 
 int Ball::getYPos() {

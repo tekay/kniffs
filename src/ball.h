@@ -2,13 +2,14 @@
 #define BALL_H__
 
 #include "ltexture.h"
+#include <memory>
 
 class Ball {
 	public:
 		static const int BALL_WIDTH = 50;
 		static const int BALL_HEIGHT = 50;
 
-		Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color);
+		Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight);
 		~Ball();
 
 		void move();
@@ -32,9 +33,10 @@ class Ball {
 		int yPos;
 		int weight;
 		int color;
-		LTexture *texture;
-		LTexture *textTexture;
-		TTF_Font *font;
+		std::unique_ptr<LTexture> texture;
+		std::unique_ptr<LTexture> textTexture;
 		SDL_Color textColor;
+		SDL_Renderer *renderer;
+		TTF_Font *font;
 };
 #endif // BALL_H__

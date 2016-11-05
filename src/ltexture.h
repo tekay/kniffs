@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string>
 #include <cmath>
+#include <memory>
+
 
 class LTexture {
 	public:
@@ -19,6 +21,7 @@ class LTexture {
 		bool loadFromFile( std::string path );
 		//Creates image from font string
 		bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
+		void setTextFromInt(int val);
 		//Deallocates texture
 		void free();
 		//Set color modulation
@@ -34,10 +37,11 @@ class LTexture {
 		int getHeight();
 
 	protected:
-		SDL_Renderer *gRenderer;
-		TTF_Font *gFont;
+		SDL_Renderer *renderer;
+		TTF_Font *font;
 		//The actual hardware texture
-		SDL_Texture* mTexture;
+		//std::unique_ptr<SDL_Texture> mTexture;
+		SDL_Texture *mTexture;
 		//Image dimensions
 		int mWidth;
 		int mHeight;
