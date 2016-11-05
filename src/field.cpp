@@ -28,6 +28,8 @@ bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 		int newDropCol = this->handleBallThrowing(event, col);
 		printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
 		return this->dropBallAt(event->getBall(), newDropCol);
+	} else if (event->getType() == Event::NOTHING) {
+		return true;
 	}
 }
 
