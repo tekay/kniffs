@@ -237,7 +237,7 @@ int Scale::newStatus() {
 
 std::shared_ptr<Ball> Scale::getAndRemoveBallFromTop(int col) {
 	int i;
-	for (i = STACK_HEIGHT; i >= 0; i--) {
+	for (i = STACK_HEIGHT - 1; i >= 0; i--) {
 		if (this->stacks[col][i]) {
 			std::shared_ptr<Ball> retBall = stacks[col][i];
 			stacks[col][i] = std::shared_ptr<Ball>(nullptr);
