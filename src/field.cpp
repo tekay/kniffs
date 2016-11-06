@@ -173,5 +173,5 @@ int Field::handleBallThrowing(std::shared_ptr<Event> event) {
 }
 
 void Field::calculateAndAddPoints(unsigned int sumWeight, unsigned int count) {
-	*this->points = count * sumWeight;
+	*this->points += count * sumWeight;
 }
