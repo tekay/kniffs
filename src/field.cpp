@@ -68,6 +68,7 @@ bool Field::destroying() {
 			}
 		}
 	}
+	return destroyedSomething;
 }
 
 void Field::destroyCrawler(int col, int row) {
