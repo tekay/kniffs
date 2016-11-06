@@ -174,6 +174,7 @@ void Scale::stacking(int col) {
 			} else {
 				if (stacks[col][i]->getColor() == color) {
 					sameColor++;
+					if (sameColor > 4) break;
 				} else {
 					sameColor = 0;
 					color = -1;
