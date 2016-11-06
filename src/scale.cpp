@@ -46,6 +46,10 @@ std::shared_ptr<Ball> Scale::getBallAt(int col, int row) {
 std::shared_ptr<Ball> Scale::getAndRemoveBallAt(int col, int row) {
 	std::shared_ptr<Ball> retBall = this->stacks[col][row];
 	this->stacks[col][row] = std::shared_ptr<Ball>(nullptr);
+	if (retBall) {
+		this->weights[col] -= retBall->getWeight();
+		this->weightTextures[col]->setTextFromInt(this->weights[col]);
+	}
 	return retBall;
 }
 
