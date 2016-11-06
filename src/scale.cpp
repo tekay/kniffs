@@ -39,7 +39,14 @@ Scale::~Scale() {
 }
 
 std::shared_ptr<Ball> Scale::getBallAt(int col, int row) {
-	return stacks[col][row];
+	std::shared_ptr<Ball> retBall = this->stacks[col][row];
+	return retBall;
+}
+
+std::shared_ptr<Ball> Scale::getAndRemoveBallAt(int col, int row) {
+	std::shared_ptr<Ball> retBall = this->stacks[col][row];
+	this->stacks[col][row] = std::shared_ptr<Ball>(nullptr);
+	return retBall;
 }
 
 std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
@@ -106,40 +113,23 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	return event;
 }
 
-void Scale::stacking(int col) {
-	if (col >= COL_COUNT || col < 0) {
-		return;
-	}
-	int i;
-	int color = -1;
-	int sameColor = 0;
-	int firstElem = 0;
-	// checkForStacking
-	for (i = STACK_HEIGHT - 1; i >= firstBallSlot(col); i--) {
-		if (stacks[col][i]) {
-			if (color == -1) {
-				firstElem = i;
-				color = stacks[col][i]->getColor();
-				sameColor++;
-			} else {
-				if (stacks[col][i]->getColor() == color) {
-					sameColor++;
-					color = -1;
-				} else {
-					sameColor = 0;
+// eliminates possible "holes" in the stack
+void Scale::collapse() {
+	int i, j, k;
+	for (i = 0; i < COL_COUNT; i++) {
+		for (j = this->firstBallSlot(i); j < STACK_HEIGHT; j++) {
+			if (!this->stacks[i][j] && j < (STACK_HEIGHT - 1)) {
+				// possibly hole in the stack. look for a ball to fill it
+				for (k = j + 1; k < STACK_HEIGHT; k++) {
+					if (this->stacks[i][k]) {
+						// found a ball, let's reallocate it
+						this->stacks[i][j] = this->stacks[i][k];
+						this->stacks[i][k]->dropDown();
+						this->stacks[i][k] = std::shared_ptr<Ball>(nullptr);
+					}
 				}
 			}
 		}
-	}
-	// stack!
-	if (sameColor > 4) {
-		int sumWeight = 0;
-		for (i = firstElem; i > (firstElem - 4); i++) {
-			sumWeight += stacks[col][i]->getWeight();
-			stacks[col][i]->collapse();
-			stacks[col][i] = std::shared_ptr<Ball>(nullptr);
-		}
-		stacks[col][firstElem - 4]->addWeight(sumWeight);
 	}
 }
 
@@ -162,6 +152,43 @@ void Scale::render() {
 }
 
 // private functions
+void Scale::stacking(int col) {
+	if (col >= COL_COUNT || col < 0) {
+		return;
+	}
+	int i;
+	int color = -1;
+	int sameColor = 0;
+	int firstElem = -1;
+	// checkForStacking
+	for (i = STACK_HEIGHT - 1; i >= firstBallSlot(col); i--) {
+		if (stacks[col][i]) {
+			if (color == -1) {
+				firstElem = i;
+				color = stacks[col][i]->getColor();
+				sameColor++;
+			} else {
+				if (stacks[col][i]->getColor() == color) {
+					sameColor++;
+				} else {
+					sameColor = 0;
+					color = -1;
+				}
+			}
+		}
+	}
+	// stack!
+	if (sameColor > 4) {
+		int sumWeight = 0;
+		for (i = firstElem; i > (firstElem - 4); i--) {
+			sumWeight += stacks[col][i]->getWeight();
+			this->stacks[col][i]->collapse();
+			this->stacks[col][i].reset();
+		}
+		stacks[col][firstElem - 4]->addWeight(sumWeight);
+	}
+}
+
 bool Scale::relocateStacks(int oldStatus) {
 	//printf("relocateStacks\n");
 	//frkn magic. some1 smarter than me needs to look at this.

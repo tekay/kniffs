@@ -38,10 +38,85 @@ bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 }
 
 void Field::check() {
-
+	// check, if balls are going to be destroyed
+	while (this->destroying()) {
+		// if balls got destroyed, stacks need to collapse
+		this->collapse();
+	}
 }
 
 // private functions
+// returns whether something was destroyed
+bool Field::destroying() {
+	int i, j;
+	bool destroyedSomething = false;
+	// testing left and right, so don't check the outer balls
+	for (i = 1; i < SCALE_COUNT * SCALE_COL_COUNT - 1; i++) {
+		// 0. row can't be in a kniff
+		for (j = 1; j < STACK_HEIGHT; j++) {
+			std::array<int, 2> currentPos = this->getScaleAndColFromCol(i);
+			std::shared_ptr<Ball> currentBall = this->scales[currentPos[0]]->getBallAt(currentPos[1], j);
+			if (currentBall) {
+				std::array<int, 2> leftPos = this->getScaleAndColFromCol(i - 1);
+				std::array<int, 2> rightPos = this->getScaleAndColFromCol(i + 1);
+				if (currentBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], j))
+						&& currentBall->compare(this->scales[rightPos[0]]->getBallAt(leftPos[1], j))) {
+					// found a kniff --> destrooooooooy
+					this->destroyCrawler(i, j);
+					destroyedSomething = true;
+				}
+			}
+		}
+	}
+}
+
+void Field::destroyCrawler(int col, int row) {
+	//std::cout << "destroying. col: " << col << ", row: " << row << std::endl;
+	std::array<int, 2> pos = this->getScaleAndColFromCol(col);
+	// temporarily get current Ball
+	std::shared_ptr<Ball> cBall = this->scales[pos[0]]->getAndRemoveBallAt(pos[1], row);
+	// the if (cBall) isn't neccessary when the function is called "right"
+	if (cBall) {
+		if (col > 0) {
+			// check left
+			std::array<int, 2> leftPos = this->getScaleAndColFromCol(col - 1);
+			if (cBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], row))) {
+				this->destroyCrawler(col - 1, row);
+			}
+		}
+		if ((col + 1) < (SCALE_COUNT * SCALE_COL_COUNT)) {
+			// check right
+			std::array<int, 2> rightPos = this->getScaleAndColFromCol(col + 1);
+			if (cBall->compare(this->scales[rightPos[0]]->getBallAt(rightPos[1], row))) {
+				this->destroyCrawler(col + 1, row);
+			}
+		}
+		if (row > 0) {
+			// check "down"
+			std::array<int, 2> bottomPos = this->getScaleAndColFromCol(col);
+			if (cBall->compare(this->scales[bottomPos[0]]->getBallAt(bottomPos[1], row - 1))) {
+				this->destroyCrawler(col, row - 1);
+			}
+		}
+		if ((row + 1) < STACK_HEIGHT) {
+			// check up
+			std::array<int, 2> upPos = this->getScaleAndColFromCol(col);
+			if (cBall->compare(this->scales[upPos[0]]->getBallAt(upPos[1], row + 1))) {
+				this->destroyCrawler(col, row + 1);
+			}
+		}
+		cBall->destroy();
+		cBall.reset();
+	}
+}
+
+void Field::collapse() {
+	int i;
+	for (i = 0; i < SCALE_COUNT; i++) {
+		this->scales[i]->collapse();
+	}
+}
+
 // [0] is the scale, [1] the col in the scale
 std::array<int, 2> Field::getScaleAndColFromCol(int col) {
 	std::array<int, 2> retArr = {col / 2, col % 2};

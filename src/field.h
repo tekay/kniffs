@@ -22,11 +22,15 @@ class Field {
 		static const int ROW_LENGTH = 8;
 		static const int COL_COUNT = 8;
 		static const int SCALE_COUNT = 4;
+		static const int SCALE_COL_COUNT = 2;
 		static const int STACK_HEIGHT = 10;
 		static const int LEFT_OFFSET = 15;
 		static const int TOP_HEIGHT = 60;
 
 		// returns whether balls has place
+		bool destroying();
+		void destroyCrawler(int col, int row);
+		void collapse();
 		std::array<int, 2> getScaleAndColFromCol(int col);
 		int handleBallThrowing(std::shared_ptr<Event> event, int startCol);
 

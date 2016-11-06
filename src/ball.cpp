@@ -62,6 +62,11 @@ Ball::~Ball() {
 	this->textTexture.reset();
 }
 
+bool Ball::compare(std::shared_ptr<Ball> other) {
+	if (!other) return false;
+	return this->color == other->getColor();
+}
+
 void Ball::render() {
 	this->texture->render(xPos, yPos);
 	this->textTexture->render(xPos + 15, yPos + 5);
@@ -118,6 +123,10 @@ void Ball::addWeight(int w) {
 
 void Ball::collapse() {
 
+}
+
+void Ball::dropDown() {
+	
 }
 
 void Ball::destroy() {

@@ -12,8 +12,9 @@ class Scale {
 		~Scale();
 
 		std::shared_ptr<Ball> getBallAt(int col, int row);
+		std::shared_ptr<Ball> getAndRemoveBallAt(int col, int row);
 		std::shared_ptr<Event> dropBallAt(std::shared_ptr<Ball> ball, int col);
-		void stacking(int col);
+		void collapse();
 
 		// graphics
 		void render();
@@ -28,6 +29,7 @@ class Scale {
 		static const int SCALE_STATUS_COUNT = 3;
 
 		// functions
+		void stacking(int col);
 		bool relocateStacks(int oldStatus);
 		bool stackUp(int col, int firstElem);
 		void stackDown(int col, int firstElem);

@@ -12,6 +12,7 @@ class Ball {
 		Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight);
 		~Ball();
 
+		bool compare(std::shared_ptr<Ball> other);
 		void move();
 		void render();
 		void setXPos(int x);
@@ -26,6 +27,7 @@ class Ball {
 
 		// graphical stuff
 		void collapse();
+		void dropDown();
 		void destroy();
 
 	private:

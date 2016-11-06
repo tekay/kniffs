@@ -22,7 +22,7 @@ class Singleplayer {
 		// constants
 		static const int TOP_HEIGHT = 50;
 		static const int TOP_LEFT_OFFSET = 15;
-		static const int FIELD_LEFT_OFFSET = 0;
+		static const int FIELD_LEFT_OFFSET = 15;
 		static const int FIELD_TOP_OFFSET = 230;
 		static const int NEW_BALLS_ROW_COUNT = 2;
 		static const int COL_COUNT = 8;
