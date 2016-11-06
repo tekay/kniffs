@@ -73,7 +73,9 @@ int Singleplayer::handleKeyEvents(SDL_Event &e) {
 							this->level++;
 						};
 						this->ballsPlacedTexture->setTextFromInt(ballsPlaced);
-						this->field->check();
+						if (this->field->check()) {
+							retVal = 1;
+						}
 					} else {
 						retVal = 1;
 					}

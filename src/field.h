@@ -16,7 +16,7 @@ class Field {
 		int handleKeyEvents(SDL_Event &e);
 		void render();
 		bool dropBallAt(std::shared_ptr<Ball> ball, int col);
-		void check();
+		bool check();
 
 	private:
 		static const int ROW_LENGTH = 8;
@@ -32,7 +32,7 @@ class Field {
 		void destroyCrawler(int col, int row);
 		void collapseAndStack();
 		std::array<int, 2> getScaleAndColFromCol(int col);
-		int handleBallThrowing(std::shared_ptr<Event> event, int startCol);
+		int handleBallThrowing(std::shared_ptr<Event> event);
 
 		std::unique_ptr<Scale> scales[SCALE_COUNT];
 

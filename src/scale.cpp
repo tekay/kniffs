@@ -54,10 +54,8 @@ std::shared_ptr<Ball> Scale::getAndRemoveBallAt(int col, int row) {
 }
 
 std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
-	std::shared_ptr<Event> event = std::make_shared<Event>(Event::NOTHING);
 	if (col >= COL_COUNT || col < 0) {
-		event->setType(Event::LOSS);
-		return event;
+		return std::make_shared<Event>(Event::LOSS);
 	}
 	int dropRow = STACK_HEIGHT;
 	int i;
@@ -76,44 +74,51 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 		this->weights[col] += ball->getWeight();
 		this->weightTextures[col]->setTextFromInt(weights[col]);
 		this->stacking(col);
-		int oldStatus = this->status;
-		this->status = this->newStatus();
-		//printf("new status: %d\n", this->status);
-		// conditions for a flying ball
-		if ((oldStatus != this->status) && (this->status != 0)) {
-			if (this->status == 1) {
-				//printf("%s\n", "ball throw to the left");
-				std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(1);
-				if (maybeBall) {
-					//printf("throw with ball\n");
-					event->setType(Event::THROW_BALL);
-					event->setDirection(this->status);
-					event->setBall(maybeBall);
-					int distance = weights[0] - weights[1];
-					event->setDistance(distance);
-				}
-			} else if (this->status == 2) {
-				std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(0);
-				//printf("%s\n", "ball throw to the right");
-				if (maybeBall) {
-					//printf("throw with ball\n");
-					event->setType(Event::THROW_BALL);
-					event->setDirection(this->status);
-					event->setBall(maybeBall);
-					int distance = weights[1] - weights[0];
-					event->setDistance(distance);
-				}
-			}
-		}
-		// relocate balls, check for death!
-		if (oldStatus != this->status) {
-			int everythingAllRight = this->relocateStacks(oldStatus);
-			if (!everythingAllRight) {
-				event->setType(Event::LOSS);
-			}
-		}
+		return this->adjust();
 	} else {
-		event->setType(Event::LOSS);
+		return std::make_shared<Event>(Event::LOSS);
+	}
+}
+
+std::shared_ptr<Event> Scale::adjust() {
+	std::shared_ptr<Event> event = std::make_shared<Event>(Event::NOTHING);
+	int oldStatus = this->status;
+	this->status = this->newStatus();
+	//printf("new status: %d\n", this->status);
+	// conditions for a flying ball
+	if ((oldStatus != this->status) && (this->status != 0)) {
+		if (this->status == 1) {
+			//printf("%s\n", "ball throw to the left");
+			std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(1);
+			if (maybeBall) {
+				//printf("throw with ball\n");
+				event->setType(Event::THROW_BALL);
+				event->setDirection(this->status);
+				event->setBall(maybeBall);
+				event->setStartCol(1);
+				int distance = weights[0] - weights[1];
+				event->setDistance(distance);
+			}
+		} else if (this->status == 2) {
+			std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(0);
+			//printf("%s\n", "ball throw to the right");
+			if (maybeBall) {
+				//printf("throw with ball\n");
+				event->setType(Event::THROW_BALL);
+				event->setDirection(this->status);
+				event->setBall(maybeBall);
+				event->setStartCol(0);
+				int distance = weights[1] - weights[0];
+				event->setDistance(distance);
+			}
+		}
+	}
+	// relocate balls, check for death!
+	if (oldStatus != this->status) {
+		int everythingAllRight = this->relocateStacks(oldStatus);
+		if (!everythingAllRight) {
+			return std::make_shared<Event>(Event::LOSS);
+		}
 	}
 	return event;
 }

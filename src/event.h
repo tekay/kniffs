@@ -21,6 +21,8 @@ class Event {
 		void setDistance(int distance);
 		int getDirection();
 		void setDirection(int direction);
+		int getStartCol();
+		void setStartCol(int startCol);
 
 	private:
 		std::shared_ptr<Ball> ball;
@@ -28,6 +30,7 @@ class Event {
 		int distance;
 		// direction: 1 = left, 2 = right
 		int direction;
+		int startCol;
 
 };
 

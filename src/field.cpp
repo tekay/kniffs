@@ -29,7 +29,10 @@ bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	if (event->getType() == Event::LOSS) {
 		return false;
 	} else if (event->getType() == Event::THROW_BALL) {
-		int newDropCol = this->handleBallThrowing(event, col);
+		// since the startCol is set inside the scale, we need to set the correct startCol for the event
+		int correctStartCol = dropPos[0] * SCALE_COL_COUNT + event->getStartCol();
+		event->setStartCol(correctStartCol);
+		int newDropCol = this->handleBallThrowing(event);
 		//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
 		return this->dropBallAt(event->getBall(), newDropCol);
 	} else {
@@ -37,12 +40,30 @@ bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	}
 }
 
-void Field::check() {
+// returns false if game is lost
+bool Field::check() {
+	int i;
 	// check, if balls are going to be destroyed
 	while (this->destroying()) {
 		// if balls got destroyed, stacks need to collapse/stack
 		//printf("found smth to destroy, collapse stacks!\n");
 		this->collapseAndStack();
+		// since we destroyed some balls, scales need to be "rechecked", maybe balls will be thrown
+		for (i = 0; i < SCALE_COUNT; i++) {
+			std::shared_ptr<Event> event = this->scales[i]->adjust();
+			if (event->getType() == Event::LOSS) {
+				return false;
+			} else if (event->getType() == Event::THROW_BALL) {
+				// since the startCol is set inside the scale, we need to set the correct startCol for the event
+				int correctStartCol = i * SCALE_COL_COUNT + event->getStartCol();
+				event->setStartCol(correctStartCol);
+				int newDropCol = this->handleBallThrowing(event);
+				//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
+				return this->dropBallAt(event->getBall(), newDropCol);
+			} else {
+				return true;
+			}
+		}
 	}
 }
 
@@ -77,6 +98,7 @@ void Field::destroyCrawler(int col, int row) {
 	std::array<int, 2> pos = this->getScaleAndColFromCol(col);
 	// temporarily get current Ball
 	std::shared_ptr<Ball> cBall = this->scales[pos[0]]->getAndRemoveBallAt(pos[1], row);
+	int i;
 	// the if (cBall) isn't neccessary when the function is called "right"
 	if (cBall) {
 		if (col > 0) {
@@ -126,19 +148,18 @@ std::array<int, 2> Field::getScaleAndColFromCol(int col) {
 	return retArr;
 }
 
-int Field::handleBallThrowing(std::shared_ptr<Event> event, int startCol) {
+int Field::handleBallThrowing(std::shared_ptr<Event> event) {
+	int startCol = event->getStartCol();
 	int newDistance = event->getDistance();
 	int dropCol;
 	if (event->getDirection() == 1) {
 		// ball flies to the left
-		startCol++;
 		while ((startCol - newDistance) < 0) {
 			newDistance -= 8;
 		}
 		dropCol = startCol - newDistance;
 	} else if (event->getDirection() == 2) {
 		// ball flies to the right
-		startCol--;
 		while ((startCol + newDistance) >= COL_COUNT)	{
 			newDistance -= 8;
 		}

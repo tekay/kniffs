@@ -58,3 +58,15 @@ void Event::setDirection(int direction) {
 		this->direction = direction;
 	}
 }
+
+int Event::getStartCol() {
+	if (this->type == THROW_BALL) {
+		return this->startCol;
+	}
+}
+
+void Event::setStartCol(int startCol) {
+	if (this->type == THROW_BALL) {
+		this->startCol = startCol;
+	}
+}
