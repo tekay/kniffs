@@ -240,7 +240,7 @@ bool Scale::stackUp(int col, int firstElem) {
 			if (!this->stacks[col][i]) continue;
 			this->stacks[col][i + 1] = stacks[col][i];
 			//this->stacks[col][i + 1]->setYPos(this->stacks[col][i + 1]->getYPos() - Ball::BALL_HEIGHT);
-			this->setBallToPos(col, i);
+			this->setBallToPos(col, i + 1);
 			this->stacks[col][i] = std::shared_ptr<Ball>(nullptr);
 		}
 		return true;
