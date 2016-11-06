@@ -60,11 +60,10 @@ bool Field::check() {
 				int newDropCol = this->handleBallThrowing(event);
 				//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
 				return this->dropBallAt(event->getBall(), newDropCol);
-			} else {
-				return true;
 			}
 		}
 	}
+	return true;
 }
 
 // private functions
