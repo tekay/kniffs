@@ -40,9 +40,9 @@ bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 void Field::check() {
 	// check, if balls are going to be destroyed
 	while (this->destroying()) {
-		// if balls got destroyed, stacks need to collapse
+		// if balls got destroyed, stacks need to collapse/stack
 		//printf("found smth to destroy, collapse stacks!\n");
-		this->collapse();
+		this->collapseAndStack();
 	}
 }
 
@@ -112,10 +112,11 @@ void Field::destroyCrawler(int col, int row) {
 	}
 }
 
-void Field::collapse() {
+void Field::collapseAndStack() {
 	int i;
 	for (i = 0; i < SCALE_COUNT; i++) {
 		this->scales[i]->collapse();
+		this->scales[i]->stack();
 	}
 }
 

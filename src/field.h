@@ -30,7 +30,7 @@ class Field {
 		// returns whether balls has place
 		bool destroying();
 		void destroyCrawler(int col, int row);
-		void collapse();
+		void collapseAndStack();
 		std::array<int, 2> getScaleAndColFromCol(int col);
 		int handleBallThrowing(std::shared_ptr<Event> event, int startCol);
 

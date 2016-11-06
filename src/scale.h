@@ -15,6 +15,7 @@ class Scale {
 		std::shared_ptr<Ball> getAndRemoveBallAt(int col, int row);
 		std::shared_ptr<Event> dropBallAt(std::shared_ptr<Ball> ball, int col);
 		void collapse();
+		void stack();
 
 		// graphics
 		void render();

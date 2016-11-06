@@ -137,6 +137,13 @@ void Scale::collapse() {
 	}
 }
 
+void Scale::stack() {
+	int i;
+	for (i = 0; i < COL_COUNT; i++) {
+		this->stacking(i);
+	}
+}
+
 void Scale::render() {
 	SDL_Rect *clip = &this->spriteClips[this->status];
 	this->texture->render(this->leftOffset, this->topOffset + this->SCALE_TOP_OFFSET, clip);
