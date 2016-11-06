@@ -40,7 +40,7 @@ class Singleplayer {
 		std::unique_ptr<BallSource> ballSource;
 		std::unique_ptr<Field> field;
 		unsigned int ballsPlaced;
-		unsigned int points;
+		std::shared_ptr<unsigned int> points;
 		unsigned int level;
 
 		// graphics stuff

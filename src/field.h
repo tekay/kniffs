@@ -10,7 +10,7 @@
 
 class Field {
 	public:
-		Field(SDL_Renderer *gRenderer, TTF_Font *gFont, int leftOffset, int topOffset);
+		Field(SDL_Renderer *gRenderer, TTF_Font *gFont, std::shared_ptr<unsigned int> points, int leftOffset, int topOffset);
 		~Field();
 
 		int handleKeyEvents(SDL_Event &e);
@@ -28,12 +28,14 @@ class Field {
 		static const int TOP_HEIGHT = 60;
 
 		// returns whether balls has place
+		void calculateAndAddPoints(unsigned int sumWeight, unsigned int count);
 		bool destroying();
-		void destroyCrawler(int col, int row);
+		void destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWeight, std::shared_ptr<unsigned int> count);
 		void collapseAndStack();
 		std::array<int, 2> getScaleAndColFromCol(int col);
 		int handleBallThrowing(std::shared_ptr<Event> event);
 
+		std::shared_ptr<unsigned int> points;
 		std::unique_ptr<Scale> scales[SCALE_COUNT];
 
 		// graphics

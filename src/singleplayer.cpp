@@ -4,7 +4,7 @@
 Singleplayer::Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(gRenderer), font(gFont) {
 	this->level = 4;
 	this->ballsPlaced = 0;
-	this->points = 0;
+	this->points = std::make_shared<unsigned int>(0);
 
 
 	//this->font = std::make_shared<SDL_Font>(TTF_OpenFont("resources/fonts/Roboto-Bold.ttf", 28));
@@ -19,7 +19,7 @@ Singleplayer::Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(
 	this->ballSource = std::make_unique<BallSource>(gRenderer, this->font, wat2, wat);
 	wat = FIELD_TOP_OFFSET;
 	wat2 = FIELD_LEFT_OFFSET;
-	this->field = std::make_unique<Field>(gRenderer, this->font, wat2, wat);
+	this->field = std::make_unique<Field>(gRenderer, this->font, this->points, wat2, wat);
 
 	SDL_Color textColor = {0, 0, 0};
 
@@ -39,7 +39,7 @@ Singleplayer::Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(
 	this->ballsPlacedTexture->setTextFromInt(ballsPlaced);
 	pointsTexture = std::make_unique<LTexture>(gRenderer);;
 	pointsTexture->setFont(gFont);
-	this->pointsTexture->setTextFromInt(points);
+	this->pointsTexture->setTextFromInt(*this->points);
 }
 
 Singleplayer::~Singleplayer() {
@@ -80,6 +80,7 @@ int Singleplayer::handleKeyEvents(SDL_Event &e) {
 						retVal = 1;
 					}
 				}
+				this->pointsTexture->setTextFromInt(*this->points);
 				//get loader a new ball
 				this->loader->giveBall(this->ballSource->getBallAt(currentCol, this->level));
 		}

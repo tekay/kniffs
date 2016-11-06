@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont, int leftOffset, int topOffset) : renderer(gRenderer), font(gFont), leftOffset(leftOffset), topOffset(topOffset) {
+Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont, std::shared_ptr<unsigned int> points, int leftOffset, int topOffset) : renderer(gRenderer), font(gFont), points(points), leftOffset(leftOffset), topOffset(topOffset) {
 	int i;
 	for (i = 0; i < SCALE_COUNT; i++) {
 		this->scales[i] = std::make_unique<Scale>(this->renderer, this->font, this->leftOffset + i * 100, this->topOffset);
@@ -83,7 +83,10 @@ bool Field::destroying() {
 				if (currentBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], j))
 						&& currentBall->compare(this->scales[rightPos[0]]->getBallAt(leftPos[1], j))) {
 					// found a kniff --> destrooooooooy
-					this->destroyCrawler(i, j);
+					std::shared_ptr<unsigned int> sumWeight = std::make_shared<unsigned int>(0);
+					std::shared_ptr<unsigned int> count = std::make_shared<unsigned int>(0);
+					this->destroyCrawler(i, j, sumWeight, count);
+					this->calculateAndAddPoints(*sumWeight, *count);
 					destroyedSomething = true;
 				}
 			}
@@ -92,7 +95,7 @@ bool Field::destroying() {
 	return destroyedSomething;
 }
 
-void Field::destroyCrawler(int col, int row) {
+void Field::destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWeight, std::shared_ptr<unsigned int> count) {
 	//std::cout << "destroying. col: " << col << ", row: " << row << std::endl;
 	std::array<int, 2> pos = this->getScaleAndColFromCol(col);
 	// temporarily get current Ball
@@ -100,32 +103,34 @@ void Field::destroyCrawler(int col, int row) {
 	int i;
 	// the if (cBall) isn't neccessary when the function is called "right"
 	if (cBall) {
+		(*count)++;
+		(*sumWeight) += cBall->getWeight();
 		if (col > 0) {
 			// check left
 			std::array<int, 2> leftPos = this->getScaleAndColFromCol(col - 1);
 			if (cBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], row))) {
-				this->destroyCrawler(col - 1, row);
+				this->destroyCrawler(col - 1, row, sumWeight, count);
 			}
 		}
 		if ((col + 1) < (SCALE_COUNT * SCALE_COL_COUNT)) {
 			// check right
 			std::array<int, 2> rightPos = this->getScaleAndColFromCol(col + 1);
 			if (cBall->compare(this->scales[rightPos[0]]->getBallAt(rightPos[1], row))) {
-				this->destroyCrawler(col + 1, row);
+				this->destroyCrawler(col + 1, row, sumWeight, count);
 			}
 		}
 		if (row > 0) {
 			// check "down"
 			std::array<int, 2> bottomPos = this->getScaleAndColFromCol(col);
 			if (cBall->compare(this->scales[bottomPos[0]]->getBallAt(bottomPos[1], row - 1))) {
-				this->destroyCrawler(col, row - 1);
+				this->destroyCrawler(col, row - 1, sumWeight, count);
 			}
 		}
 		if ((row + 1) < STACK_HEIGHT) {
 			// check up
 			std::array<int, 2> upPos = this->getScaleAndColFromCol(col);
 			if (cBall->compare(this->scales[upPos[0]]->getBallAt(upPos[1], row + 1))) {
-				this->destroyCrawler(col, row + 1);
+				this->destroyCrawler(col, row + 1, sumWeight, count);
 			}
 		}
 		cBall->destroy();
@@ -165,4 +170,8 @@ int Field::handleBallThrowing(std::shared_ptr<Event> event) {
 		dropCol = startCol + newDistance;
 	}
 	return dropCol;
+}
+
+void Field::calculateAndAddPoints(unsigned int sumWeight, unsigned int count) {
+	*this->points = count * sumWeight;
 }
