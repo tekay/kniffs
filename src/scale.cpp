@@ -61,7 +61,8 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 		if (!stacks[col][i]) {
 			//printf("ball in row: %d\n", i);
 			this->stacks[col][i] = ball;
-			this->stacks[col][i]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + this->BALL_AREA_HEIGHT -  i * Ball::BALL_HEIGHT);
+			//this->stacks[col][i]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + this->BALL_AREA_HEIGHT -  i * Ball::BALL_HEIGHT);
+			this->setBallToPos(col, i);
 			dropRow = i;
 			break;
 		}
@@ -120,11 +121,14 @@ void Scale::collapse() {
 		for (j = this->firstBallSlot(i); j < STACK_HEIGHT; j++) {
 			if (!this->stacks[i][j] && j < (STACK_HEIGHT - 1)) {
 				// possibly hole in the stack. look for a ball to fill it
+				//printf("found a hole. searching for ball to fill\n");
 				for (k = j + 1; k < STACK_HEIGHT; k++) {
 					if (this->stacks[i][k]) {
 						// found a ball, let's reallocate it
+						//printf("found smth to fill it\n");
 						this->stacks[i][j] = this->stacks[i][k];
 						this->stacks[i][k]->dropDown();
+						this->setBallToPos(i, j);
 						this->stacks[i][k] = std::shared_ptr<Ball>(nullptr);
 					}
 				}
@@ -235,7 +239,8 @@ bool Scale::stackUp(int col, int firstElem) {
 		for (i = STACK_HEIGHT - 2; i >= firstElem; i--) {
 			if (!this->stacks[col][i]) continue;
 			this->stacks[col][i + 1] = stacks[col][i];
-			this->stacks[col][i + 1]->setYPos(this->stacks[col][i + 1]->getYPos() - Ball::BALL_HEIGHT);
+			//this->stacks[col][i + 1]->setYPos(this->stacks[col][i + 1]->getYPos() - Ball::BALL_HEIGHT);
+			this->setBallToPos(col, i);
 			this->stacks[col][i] = std::shared_ptr<Ball>(nullptr);
 		}
 		return true;
@@ -248,7 +253,8 @@ void Scale::stackDown(int col, int firstElem) {
 	for (i = firstElem - 1; i < STACK_HEIGHT - 2; i++) {
 		if (this->stacks[col][i + 1]) {
 			this->stacks[col][i] = stacks[col][i + 1];
-			this->stacks[col][i]->setYPos(this->stacks[col][i]->getYPos() + Ball::BALL_HEIGHT);
+			//this->stacks[col][i]->setYPos(this->stacks[col][i]->getYPos() + Ball::BALL_HEIGHT);
+			this->setBallToPos(col, i);
 			this->stacks[col][i + 1] = std::shared_ptr<Ball>(nullptr);
 		}
 	}
@@ -290,7 +296,7 @@ std::shared_ptr<Ball> Scale::getAndRemoveBallFromTop(int col) {
 	return std::shared_ptr<Ball>(nullptr);
 }
 
-void Scale::setBallToPos(int row, int col) {
+void Scale::setBallToPos(int col, int row) {
 	// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there
-	this->stacks[row][col]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + 250 + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
+	this->stacks[col][row]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
 }

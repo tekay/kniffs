@@ -41,6 +41,7 @@ void Field::check() {
 	// check, if balls are going to be destroyed
 	while (this->destroying()) {
 		// if balls got destroyed, stacks need to collapse
+		//printf("found smth to destroy, collapse stacks!\n");
 		this->collapse();
 	}
 }
