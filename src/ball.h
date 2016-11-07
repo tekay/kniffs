@@ -8,6 +8,7 @@ class Ball {
 	public:
 		static const int BALL_WIDTH = 50;
 		static const int BALL_HEIGHT = 50;
+		static const int COLOR_COUNT = 11;
 
 		Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight);
 		~Ball();

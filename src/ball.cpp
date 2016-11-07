@@ -2,7 +2,9 @@
 #include <iostream>
 #include <sstream>
 
-Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : renderer(gRenderer), font(gFont), color(color), weight(weight) {
+Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : renderer(gRenderer), font(gFont), weight(weight) {
+	if (color < COLOR_COUNT) this->color = color;
+	else this->color = COLOR_COUNT - 1;
 	SDL_Color textColor = {0, 0, 0};
 	this->texture = std::make_unique<LTexture>(gRenderer);
 	this->textTexture = std::make_unique<LTexture>(gRenderer);
@@ -38,8 +40,9 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : re
 		case 9:
 			chColor = "darkblue";
 			break;
-		default:
+		case 10:
 			chColor = "grey";
+			break;
 	}
 	std::stringstream ss;
 	ss << "resources/ball_" << chColor << ".png";
@@ -126,7 +129,7 @@ void Ball::collapse() {
 }
 
 void Ball::dropDown() {
-	
+
 }
 
 void Ball::destroy() {
