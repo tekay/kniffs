@@ -307,6 +307,8 @@ std::shared_ptr<Ball> Scale::getAndRemoveBallFromTop(int col) {
 		if (this->stacks[col][i]) {
 			std::shared_ptr<Ball> retBall = stacks[col][i];
 			stacks[col][i] = std::shared_ptr<Ball>(nullptr);
+			this->weights[col] -= retBall->getWeight();
+			this->weightTextures[col]->setTextFromInt(this->weights[col]);
 			return retBall;
 		}
 	}
