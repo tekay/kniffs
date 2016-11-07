@@ -2,385 +2,226 @@
 #include <iostream>
 #include <sstream>
 
-Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont) {
-	this->renderer = gRenderer;
-	this->font = gFont;
-	level = 4;
-	ballsPlaced = 0;
-	points = 0;
-
-	this->loader = new Loader(gRenderer);
-
-	//newBalls = malloc(size_of(Ball) * NEW_BALLS_ROWS * ROW_LENGTH);
-	//stackedBalls = malloc(size_of(Ball) * STACK_HEIGHT * ROW_LENGTH);
-	int i, j;
-	// init text textures for weights and weights
-	for (i = 0; i < COL_COUNT; i++) {
-		weights[i] = 0;
-		weightTextures[i] = new LTexture(gRenderer);
-		weightTextures[i]->setFont(gFont);
-		this->setTextFromIntForTexture(weightTextures[i], weights[i]);
+Field::Field(SDL_Renderer *gRenderer, TTF_Font *gFont, std::shared_ptr<unsigned int> points, int leftOffset, int topOffset) : renderer(gRenderer), font(gFont), points(points), leftOffset(leftOffset), topOffset(topOffset) {
+	int i;
+	for (i = 0; i < SCALE_COUNT; i++) {
+		this->scales[i] = std::make_unique<Scale>(this->renderer, this->font, this->leftOffset + i * 100, this->topOffset);
 	}
-
-	SDL_Color textColor = {0, 0, 0};
-
-	ballsPlacedTextTexture = new LTexture(gRenderer);
-	ballsPlacedTextTexture->setFont(gFont);
-	if (!ballsPlacedTextTexture->loadFromRenderedText("balls:", textColor)) {
-		std::cout << "failed to load from rendered text" << std::endl;
-	}
-	pointsTextTexture = new LTexture(gRenderer);
-	pointsTextTexture->setFont(gFont);
-	if (!pointsTextTexture->loadFromRenderedText("points:", textColor)) {
-		std::cout << "failed to load from rendered text" << std::endl;
-	}
-
-	ballsPlacedTexture = new LTexture(gRenderer);
-	ballsPlacedTexture->setFont(gFont);
-	this->setTextFromIntForTexture(ballsPlacedTexture, ballsPlaced);
-	pointsTexture = new LTexture(gRenderer);
-	pointsTexture->setFont(gFont);
-	this->setTextFromIntForTexture(pointsTexture, points);
-
-
-	// init top ball row)
-	for (i = 0; i < NEW_BALLS_ROWS; i++) {
-		for (j = 0; j < ROW_LENGTH; j++) {
-			newBalls[i][j] = makeNewBall();
-			newBalls[i][j]->setPos(LEFT_OFFSET + j * Ball::BALL_WIDTH, TOP_HEIGHT + i * Ball::BALL_HEIGHT);
-		}
-	}
-	// init ball stacks
-	for (i = 0; i < STACK_HEIGHT; i++) {
-		for (j = 0; j < ROW_LENGTH; j++) {
-			stackedBalls[i][j] = NULL;
-		}
-	}
-
 }
 
 Field::~Field() {
-	delete this->loader;
-	int i, j;
-	// init top ball row
-	for (i = 0; i < NEW_BALLS_ROWS; i++) {
-		for (j = 0; j < ROW_LENGTH; j++) {
-			if (newBalls[i][j] != NULL) {
-				delete newBalls[i][j];
-			}
-		}
-	}
-	// render ball stacks
-	for (i = 0; i < STACK_HEIGHT; i++) {
-		for (j = 0; j < ROW_LENGTH; j++) {
-			if (stackedBalls[i][j] == NULL) {
-				delete stackedBalls[i][j];
-			}
-		}
+	int i;
+	for (i = 0; i < SCALE_COUNT; i++) {
+		this->scales[i].reset();
 	}
 }
 
 void Field::render() {
-	this->loader->render();
+	for (std::unique_ptr<Scale> &s : scales) {
+		s->render();
+	}
+}
+
+/**
+	Handles the ball after it has left the loader.
+	Since the scale can shift and throw a ball, we need to first set the correct start col.
+	Then, the target drop col is calculated and the ball is being droped into the correct scale.
+	This function is recursive!
+
+	@param ball the ball that is droped onto the scale
+	@param col the column based on the field
+	@return Whether the game is lost after this ball drop
+*/
+bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
+	std::array<int, 2> dropPos = this->getScaleAndColFromCol(col);
+	//printf("scale: %d, col: %d\n", dropPos[0], dropPos[1]);
+	std::shared_ptr<Event> event = this->scales[dropPos[0]]->dropBallAt(ball, dropPos[1]);
+	if (event->getType() == Event::LOSS) {
+		return false;
+	} else if (event->getType() == Event::THROW_BALL) {
+		// since the startCol is set inside the scale, we need to set the correct startCol for the event
+		int correctStartCol = dropPos[0] * SCALE_COL_COUNT + event->getStartCol();
+		event->setStartCol(correctStartCol);
+		int newDropCol = this->handleBallThrowing(event);
+		//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
+		return this->dropBallAt(event->getBall(), newDropCol);
+	} else {
+		return true;
+	}
+}
+
+/**
+	Handles the validation and chain reactions.
+	First, it check's whether something can be destroyed.
+
+	@return whether the game is lost
+*/
+bool Field::check() {
+	int i;
+	// check, if balls are going to be destroyed
+	while (this->destroying()) {
+		// if balls got destroyed, stacks need to collapse/stack
+		//printf("found smth to destroy, collapse stacks!\n");
+		this->collapseAndStack();
+		// since we destroyed some balls, scales need to be "rechecked", maybe balls will be thrown
+		for (i = 0; i < SCALE_COUNT; i++) {
+			std::shared_ptr<Event> event = this->scales[i]->adjust();
+			if (event->getType() == Event::LOSS) {
+				return false;
+			} else if (event->getType() == Event::THROW_BALL) {
+				// since the startCol is set inside the scale, we need to set the correct startCol for the event
+				int correctStartCol = i * SCALE_COL_COUNT + event->getStartCol();
+				event->setStartCol(correctStartCol);
+				int newDropCol = this->handleBallThrowing(event);
+				//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
+				return this->dropBallAt(event->getBall(), newDropCol);
+			}
+		}
+	}
+	return true;
+}
+
+// private functions
+
+/**
+	Checks if three balls with the same color are in a row.
+	If a "kniff" is found, it triggeres the destroying.
+	Since the field can heavily change, it needs to track wether something got destroyed to clean up the field afterwards.
+
+	@return whether something was destroyed
+*/
+bool Field::destroying() {
 	int i, j;
-	// render new balls
-	for (i = 0; i < NEW_BALLS_ROWS; i++) {
-		for (j = 0; j < ROW_LENGTH; j++) {
-			if (newBalls[i][j] != NULL) {
-				newBalls[i][j]->render();
-			}
-		}
-	}
-	// render ball stacks
-	for (i = 0; i < STACK_HEIGHT; i++) {
-		for (j = 0; j < ROW_LENGTH; j++) {
-			if (stackedBalls[i][j] != NULL) {
-				stackedBalls[i][j]->render();
-			}
-		}
-	}
-	// render ball weight
-	for (i = 0; i < COL_COUNT; i++) {
-		// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there + 20 for scale + 40 for mid
-		weightTextures[i]->render(LEFT_OFFSET + 15 + i * Ball::BALL_WIDTH, TOP_HEIGHT + 300 + STACK_HEIGHT * Ball::BALL_HEIGHT);
-	}
-
-	ballsPlacedTextTexture->render(BALLS_PLACED_TEXT_TEXTURE_X_POS, BALLS_PLACED_TEXT_TEXTURE_Y_POS);
-	pointsTextTexture->render(POINTS_TEXT_TEXTURE_X_POS, POINTS_TEXT_TEXTURE_Y_POS);
-	ballsPlacedTexture->render(BALLS_PLACED_TEXTURE_X_POS, BALLS_PLACED_TEXTURE_Y_POS);
-	pointsTexture->render(POINTS_TEXTURE_X_POS, POINTS_TEXTURE_Y_POS);
-}
-
-Ball* Field::makeNewBall() {
-	return new Ball(this->renderer, this->font, level);
-}
-
-Ball* Field::getBallFromNew(int col) {
-	Ball* retBall = newBalls[1][col];
-	newBalls[1][col] = newBalls[0][col];
-	newBalls[1][col]->setYPos(newBalls[1][col]->getYPos() + Ball::BALL_HEIGHT);
-	newBalls[0][col] = makeNewBall();
-	newBalls[0][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT);
-	return retBall;
-}
-
-int Field::handleKeyEvents(SDL_Event &e) {
-	int retVal = 0;
-	if (e.type == SDL_KEYDOWN) {
-		//Adjust the velocity
-		switch (e.key.keysym.sym) {
-			case SDLK_LEFT:
-				loader->move(0);
-				break;
-			case SDLK_RIGHT:
-				loader->move(1);
-				break;
-			case SDLK_DOWN:
-				int currentCol = this->loader->getCurrentCol();
-				// drop ball currently in loader
-				Ball* ball = this->loader->dropBall();
-				if (ball != NULL) {
-					int dropRow = this->dropBall(ball, currentCol);
-					// everything's fine
-					if (dropRow < STACK_HEIGHT) {
-						if(++this->ballsPlaced % 50 == 0) {
-							// drop a star
-							level++;
-						};
-						this->setTextFromIntForTexture(ballsPlacedTexture, ballsPlaced);
-						checkField(dropRow, currentCol);
-					} else {
-						retVal = 1;
-					}
-				}
-				//get loader a new ball
-				this->loader->giveBall(getBallFromNew(currentCol));
-		}
-	}
-	return retVal;
-}
-
-// returns the row
-int Field::dropBall(Ball* ball, int col) {
-	int i, j;
-	for (i = 0; i < STACK_HEIGHT; i++) {
-		if (stackedBalls[i][col] == NULL) {
-			stackedBalls[i][col] = ball;
-			this->setBallToPos(i, col);
-			this->weights[col] += ball->getWeight();
-			this->setTextFromIntForTexture(weightTextures[col], weights[col]);
-			return i;
-		}
-	}
-	return STACK_HEIGHT;
-}
-
-void Field::checkField(int row, int col) {
-	//std::cout << "check for new ball at row: " << row << " and col: " << col << std::endl;
-	if (this->checkForStacking(row, col)) {
-		this->stackBalls(row, col);
-		// current ball of interest is stacked, so 4 places down
-		row -= 4;
-	}
-
-	if (this->checkPosForDestroying(row, col)) {
-		int count = 0;
-		int sumWeight = 0;
-		this->destroyBalls(row, col, stackedBalls[row][col]->getColor(), &count, &sumWeight);
-		this->calculateAndAddPoints(count, sumWeight);
-		this->collapseField();
-	}
-	while (this->checkAndDestroy()) {
-		this->collapseField();
-	}
-}
-
-bool Field::checkForStacking(int row, int col) {
-	int color = stackedBalls[row][col]->getColor();
-	int i;
-	int sameColor = 1;
-	// check for collapse (5 balls with same color)
-	// only check if stack has at least 5 balls
-	if (row >= 4) {
-		for (i = (row - 1); i >= (row - 4); i--) {
-			if (stackedBalls[i][col]->getColor() == color) {
-				sameColor++;
-			} else {
-				break;
-			}
-		}
-	}
-	return (sameColor == 5);
-}
-
-void Field::stackBalls(int row, int col) {
-	int sumWeight = 0;
-	int i;
-	for (i = row; i > (row - 4); i--) {
-		sumWeight += stackedBalls[i][col]->getWeight();
-		stackedBalls[i][col]->collapse();
-		delete stackedBalls[i][col];
-		stackedBalls[i][col] = NULL;
-	}
-	stackedBalls[row - 4][col]->addWeight(sumWeight);
-}
-
-bool Field::checkPosForDestroying(int row, int col) {
-	// check for threeway (höhö)
-	bool isDestroyable = false;
-	int color = stackedBalls[row][col]->getColor();
-
-	// xxo
-	if (col > 1
-		&& stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getColor() == color
-		&& stackedBalls[row][col - 2] != NULL && stackedBalls[row][col - 2]->getColor() == color)
-		isDestroyable = true;
-	// xox
-	if (col > 0 && col < (COL_COUNT - 1)
-		&& stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getColor() == color
-		&& stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getColor() == color)
-		isDestroyable = true;
-	// oxx
-	if (col < (COL_COUNT - 2)
-		&& stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getColor() == color
-		&& stackedBalls[row][col + 2] != NULL && stackedBalls[row][col + 2]->getColor() == color)
-		isDestroyable = true;
-
-	return isDestroyable;
-}
-
-bool Field::checkAndDestroy() {
-	bool destroyed = false;
-	int i, j, color, sameColorCount;
-
-	for (i = 0; i < STACK_HEIGHT; i++) {
-		sameColorCount = 0;
-		color = -1;
-		for (j = 0; j < COL_COUNT; j++) {
-			if (stackedBalls[i][j] == NULL) {
-				color = -1;
-				sameColorCount = 0;
-				continue;
-			}
-			if (color < 0) {
-				color = stackedBalls[i][j]->getColor();
-			}
-			if (stackedBalls[i][j]->getColor() == color) {
-				sameColorCount++;
-			} else {
-				if (sameColorCount > 2) {
-					int count = 0;
-					int weight = 0;
-					this->destroyBalls(i, j - 1, color, &count, &weight);
-					this->calculateAndAddPoints(count, weight);
-					destroyed = true;
-				}
-				// reset count, reset color for new init
-				sameColorCount = 0;
-				if (j < (COL_COUNT - 1)) {
-					// only reset color when not last row
-					color = -1;
+	bool destroyedSomething = false;
+	// testing left and right, so don't check the outer balls
+	for (i = 1; i < SCALE_COUNT * SCALE_COL_COUNT - 1; i++) {
+		// 0. row can't be in a kniff
+		for (j = 1; j < STACK_HEIGHT; j++) {
+			std::array<int, 2> currentPos = this->getScaleAndColFromCol(i);
+			std::shared_ptr<Ball> currentBall = this->scales[currentPos[0]]->getBallAt(currentPos[1], j);
+			if (currentBall) {
+				std::array<int, 2> leftPos = this->getScaleAndColFromCol(i - 1);
+				std::array<int, 2> rightPos = this->getScaleAndColFromCol(i + 1);
+				if (currentBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], j))
+						&& currentBall->compare(this->scales[rightPos[0]]->getBallAt(leftPos[1], j))) {
+					// found a kniff --> destrooooooooy
+					std::shared_ptr<unsigned int> sumWeight = std::make_shared<unsigned int>(0);
+					std::shared_ptr<unsigned int> count = std::make_shared<unsigned int>(0);
+					this->destroyCrawler(i, j, sumWeight, count);
+					this->calculateAndAddPoints(*sumWeight, *count);
+					destroyedSomething = true;
 				}
 			}
 		}
-		if (sameColorCount > 2) {
-			// most right column
-			int count = 0;
-			int weight = 0;
-			this->destroyBalls(i, COL_COUNT - 1, color, &count, &weight);
-			this->calculateAndAddPoints(count, weight);
-			destroyed = true;
-		}
 	}
-
-	return destroyed;
+	return destroyedSomething;
 }
 
-void Field::destroyBalls(int row, int col, int color, int *count, int *sumWeight) {
-	//std::cout << "color: " << color << std::endl;
-	int i;
-	if (stackedBalls[row][col] != NULL) {
-		// remove weight from stack
-		this->weights[col] -= stackedBalls[row][col]->getWeight();
-		//this->setWeightForWeightTexture(col);
-		this->setTextFromIntForTexture(weightTextures[col], weights[col]);
+/**
+	Crawls from ball to ball with the same color and destroyes them.
+	It removes the ball referenced by col and row, adds the weight to the sumWeight and increases the counter.
+	Compares nearby slots to the currenct target, if they compare,
+	calls the function on this ball to crawl through the field.
 
-		// add weight and increase count
+	@param col the column of the target
+	@param row the row of the target
+	@sumWeight the weight of the balls destroyed so far sumed up
+	@count the destroy counter
+*/
+void Field::destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWeight, std::shared_ptr<unsigned int> count) {
+	//std::cout << "destroying. col: " << col << ", row: " << row << std::endl;
+	std::array<int, 2> pos = this->getScaleAndColFromCol(col);
+	// temporarily get current Ball
+	std::shared_ptr<Ball> cBall = this->scales[pos[0]]->getAndRemoveBallAt(pos[1], row);
+	int i;
+	// the if (cBall) isn't neccessary when the function is called "right"
+	if (cBall) {
 		(*count)++;
-		*sumWeight += stackedBalls[row][col]->getWeight();
-
-		stackedBalls[row][col]->destroy();
-		delete stackedBalls[row][col];
-		stackedBalls[row][col] = NULL;
-
+		(*sumWeight) += cBall->getWeight();
+		if (col > 0) {
+			// check left
+			std::array<int, 2> leftPos = this->getScaleAndColFromCol(col - 1);
+			if (cBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], row))) {
+				this->destroyCrawler(col - 1, row, sumWeight, count);
+			}
+		}
+		if ((col + 1) < (SCALE_COUNT * SCALE_COL_COUNT)) {
+			// check right
+			std::array<int, 2> rightPos = this->getScaleAndColFromCol(col + 1);
+			if (cBall->compare(this->scales[rightPos[0]]->getBallAt(rightPos[1], row))) {
+				this->destroyCrawler(col + 1, row, sumWeight, count);
+			}
+		}
+		if (row > 0) {
+			// check "down"
+			std::array<int, 2> bottomPos = this->getScaleAndColFromCol(col);
+			if (cBall->compare(this->scales[bottomPos[0]]->getBallAt(bottomPos[1], row - 1))) {
+				this->destroyCrawler(col, row - 1, sumWeight, count);
+			}
+		}
 		if ((row + 1) < STACK_HEIGHT) {
-			if (stackedBalls[row + 1][col] != NULL && stackedBalls[row + 1][col]->getColor() == color) {
-				this->destroyBalls(row + 1, col, color, count, sumWeight);
+			// check up
+			std::array<int, 2> upPos = this->getScaleAndColFromCol(col);
+			if (cBall->compare(this->scales[upPos[0]]->getBallAt(upPos[1], row + 1))) {
+				this->destroyCrawler(col, row + 1, sumWeight, count);
 			}
 		}
-		if ((col + 1) < COL_COUNT) {
-			if (stackedBalls[row][col + 1] != NULL && stackedBalls[row][col + 1]->getColor() == color) {
-				this->destroyBalls(row, col + 1, color, count, sumWeight);
-			}
-		}
-		if ((row - 1) >= 0) {
-			if (stackedBalls[row - 1][col] != NULL && stackedBalls[row - 1][col]->getColor() == color) {
-				this->destroyBalls(row - 1, col, color, count, sumWeight);
-			}
-		}
-		if ((col - 1) >= 0) {
-			if (stackedBalls[row][col - 1] != NULL && stackedBalls[row][col - 1]->getColor() == color) {
-				this->destroyBalls(row, col - 1, color, count, sumWeight);
-			}
-		}
+		cBall->destroy();
+		cBall.reset();
 	}
 }
 
-void Field::collapseField() {
+/**
+	Let's the stacks on the scale collapse (check for "holes").
+	See Scales.
+*/
+void Field::collapseAndStack() {
 	int i;
-	for (i = 0; i < COL_COUNT; i++) {
-		this->collapseStack(0, i);
+	for (i = 0; i < SCALE_COUNT; i++) {
+		this->scales[i]->collapse();
+		this->scales[i]->stack();
 	}
 }
 
-void Field::collapseStack(int row, int col) {
-	if ((row + 1) < STACK_HEIGHT) {
-		if (stackedBalls[row][col] == NULL) {
-			int i;
-			int grabRow = -1;
-			for (i = row + 1; i < STACK_HEIGHT; i++) {
-				if (stackedBalls[i][col] != NULL) {
-					grabRow = i;
-					break;
-				}
-			}
-			if (grabRow > 0) {
-				stackedBalls[row][col] = stackedBalls[grabRow][col];
-				this->setBallToPos(row, col);
-				stackedBalls[grabRow][col]->collapse();
-				stackedBalls[grabRow][col] = NULL;
-			}
+/**
+	Calculates, which scale is responsible for the given col.
+	Also calculates the column in the scale.
+
+	@param col the column based on the field
+	@return the linked scale (ret[0]) and column based on the scale (ret[1])
+*/
+// [0] is the scale, [1] the col in the scale
+std::array<int, 2> Field::getScaleAndColFromCol(int col) {
+	std::array<int, 2> retArr = {col / 2, col % 2};
+	return retArr;
+}
+
+/**
+	Calculates the target column for a throw event.
+
+	@param event the throw event
+	@return the target drop column based on the field
+*/
+int Field::handleBallThrowing(std::shared_ptr<Event> event) {
+	int startCol = event->getStartCol();
+	int newDistance = event->getDistance();
+	int dropCol;
+	if (event->getDirection() == 1) {
+		// ball flies to the left
+		while ((startCol - newDistance) < 0) {
+			newDistance -= 8;
 		}
-		this->collapseStack(row + 1, col);
+		dropCol = startCol - newDistance;
+	} else if (event->getDirection() == 2) {
+		// ball flies to the right
+		while ((startCol + newDistance) >= COL_COUNT)	{
+			newDistance -= 8;
+		}
+		dropCol = startCol + newDistance;
 	}
+	return dropCol;
 }
 
-void Field::calculateAndAddPoints(int count, int weight) {
-	points += count * weight;
-	this->setTextFromIntForTexture(pointsTexture, points);
-}
-
-void Field::setBallToPos(int row, int col) {
-	// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there
-	stackedBalls[row][col]->setPos(LEFT_OFFSET + col * Ball::BALL_WIDTH, TOP_HEIGHT + 250 + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
-}
-
-void Field::setTextFromIntForTexture(LTexture *texture, int val) {
-	SDL_Color textColor = {0, 0, 0};
-	std::stringstream ss1;
-	ss1 << val;
-	const char *chWeight = ss1.str().c_str();
-	if (!texture->loadFromRenderedText(chWeight, textColor)) {
-		std::cout << "failed to load from rendered text" << std::endl;
-	}
+void Field::calculateAndAddPoints(unsigned int sumWeight, unsigned int count) {
+	*this->points += count * sumWeight;
 }

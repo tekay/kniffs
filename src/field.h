@@ -4,63 +4,43 @@
 #include "ltexture.h"
 #include "loader.h"
 #include "ball.h"
+#include "scale.h"
+#include "event.h"
+#include <memory>
 
 class Field {
 	public:
-		Field(SDL_Renderer *gRenderer, TTF_Font *gFont);
+		Field(SDL_Renderer *gRenderer, TTF_Font *gFont, std::shared_ptr<unsigned int> points, int leftOffset, int topOffset);
 		~Field();
 
 		int handleKeyEvents(SDL_Event &e);
 		void render();
+		bool dropBallAt(std::shared_ptr<Ball> ball, int col);
+		bool check();
+
 	private:
 		static const int ROW_LENGTH = 8;
 		static const int COL_COUNT = 8;
-		static const int NEW_BALLS_ROWS = 2;
+		static const int SCALE_COUNT = 4;
+		static const int SCALE_COL_COUNT = 2;
 		static const int STACK_HEIGHT = 10;
 		static const int LEFT_OFFSET = 15;
 		static const int TOP_HEIGHT = 60;
-		static const int BALLS_PLACED_TEXTURE_X_POS = 120;
-		static const int BALLS_PLACED_TEXTURE_Y_POS = 0;
-		static const int BALLS_PLACED_TEXT_TEXTURE_X_POS = 10;
-		static const int BALLS_PLACED_TEXT_TEXTURE_Y_POS = 0;
-		static const int POINTS_TEXTURE_X_POS = 325;
-		static const int POINTS_TEXTURE_Y_POS = 0;
-		static const int POINTS_TEXT_TEXTURE_X_POS = 200;
-		static const int POINTS_TEXT_TEXTURE_Y_POS = 0;
 
-		Ball* makeNewBall();
-		Ball* getBallFromNew(int col);
 		// returns whether balls has place
-		int dropBall(Ball *ball, int col);
-		void checkField(int row, int col);
-		bool checkForStacking(int row, int col);
-		void stackBalls(int row, int col);
-		bool checkPosForDestroying(int row, int col);
-		bool checkAndDestroy();
-		void destroyBalls(int row, int col, int color, int *count, int *sumWeight);
-		void collapseField();
-		void collapseStack(int row, int col);
+		void calculateAndAddPoints(unsigned int sumWeight, unsigned int count);
+		bool destroying();
+		void destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWeight, std::shared_ptr<unsigned int> count);
+		void collapseAndStack();
+		std::array<int, 2> getScaleAndColFromCol(int col);
+		int handleBallThrowing(std::shared_ptr<Event> event);
 
-		void calculateAndAddPoints(int count, int weight);
+		std::shared_ptr<unsigned int> points;
+		std::unique_ptr<Scale> scales[SCALE_COUNT];
 
-		void setBallToPos(int row, int col);
-		void setTextFromIntForTexture(LTexture *texture, int val);
-
-		LTexture *weightTextures[COL_COUNT];
-		LTexture *ballsPlacedTexture;
-		LTexture *ballsPlacedTextTexture;
-		LTexture *pointsTexture;
-		LTexture *pointsTextTexture;
-		// new ball row
-		Ball *newBalls[NEW_BALLS_ROWS][ROW_LENGTH];
-		// ball stacks
-		Ball *stackedBalls[STACK_HEIGHT][ROW_LENGTH];
-
-		Loader *loader;
-		int weights[COL_COUNT];
-		int level;
-		int ballsPlaced;
-		int points;
+		// graphics
+		int leftOffset;
+		int topOffset;
 
 		SDL_Renderer *renderer;
 		TTF_Font *font;

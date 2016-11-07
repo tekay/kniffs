@@ -4,8 +4,9 @@ and may not be redistributed without written permission.*/
 #include "ltexture.h"
 /*#include "lbutton.h"
 #include "loader.h"*/
-#include "field.h"
+#include "singleplayer.h"
 #include <iostream>
+#include <memory>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 430;
@@ -20,16 +21,27 @@ bool loadMedia();
 //Frees media and shuts down SDL
 void close();
 
+struct sdl_deleter
+{
+  void operator()(SDL_Window *p) const { SDL_DestroyWindow(p); }
+  void operator()(SDL_Renderer *p) const { SDL_DestroyRenderer(p); }
+  void operator()(SDL_Texture *p) const { SDL_DestroyTexture(p); }
+	void operator()(TTF_Font *p) const { TTF_CloseFont(p); }
+};
+
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
 
 //The window renderer
-SDL_Renderer* gRenderer = NULL;
+//std::shared_ptr<SDL_Renderer> gRenderer;
+SDL_Renderer *gRenderer;
 
 //Globally used font
-TTF_Font *gFont = NULL;
+//std::shared_ptr<TTF_Font> gFont;
+TTF_Font *gFont;
 
-Field *field;
+std::unique_ptr<Singleplayer> game;
+
 
 bool init() {
 	//Initialization flag
@@ -92,11 +104,11 @@ bool loadMedia() {
 }
 
 void close() {
-	delete field;
+	game.reset();
 
 	//Destroy window
 	TTF_CloseFont(gFont);
-	SDL_DestroyRenderer( gRenderer );
+	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow( gWindow );
 	gWindow = NULL;
 	gRenderer = NULL;
@@ -117,7 +129,7 @@ int main(int argc, char* args[]) {
 		if (!loadMedia()) {
 			std::cout << "Failed to load media!" << std::endl;
 		} else {
-			field = new Field(gRenderer, gFont);
+			game = std::make_unique<Singleplayer>(gRenderer, gFont);
 			//Main loop flag
 			bool quit = false;
 			//Event handler
@@ -131,19 +143,19 @@ int main(int argc, char* args[]) {
 					if (e.type == SDL_QUIT) {
 						quit = true;
 					}
-					if (field->handleKeyEvents(e) == 1) {
+					if (game->handleKeyEvents(e) == 1) {
 						quit = true;
 					}
 				}
 
 				//Clear screen
-				SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-				SDL_RenderClear( gRenderer );
+				SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+				SDL_RenderClear(gRenderer);
 
-				field->render();
+				game->render();
 
 				//Update screen
-				SDL_RenderPresent( gRenderer );
+				SDL_RenderPresent(gRenderer);
 			}
 		}
 	}
