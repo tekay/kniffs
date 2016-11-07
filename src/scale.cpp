@@ -38,11 +38,27 @@ Scale::~Scale() {
 	}
 }
 
+/**
+	Endpoint to get a shared_ptr to the slot.
+	Doesn't check whether the slot is occupied by a ball, so it can return a nullptr.
+
+	@param col the column based on the scale
+	@param row the row
+	@return the slot referenced by col + row. slot can be empty!
+*/
 std::shared_ptr<Ball> Scale::getBallAt(int col, int row) {
 	std::shared_ptr<Ball> retBall = this->stacks[col][row];
 	return retBall;
 }
 
+/**
+	Endpoint to get and remove a shared_ptr to the slot.
+	Doesn't check whether the slot is occupied by a ball, so it can return a nullptr.
+
+	@param col the column based on the scale
+	@param row the row
+	@return the slot referenced by col + row. slot can be empty!
+*/
 std::shared_ptr<Ball> Scale::getAndRemoveBallAt(int col, int row) {
 	std::shared_ptr<Ball> retBall = this->stacks[col][row];
 	this->stacks[col][row] = std::shared_ptr<Ball>(nullptr);
@@ -53,8 +69,18 @@ std::shared_ptr<Ball> Scale::getAndRemoveBallAt(int col, int row) {
 	return retBall;
 }
 
+/**
+	Handles the ball drop.
+	It checks if the ball can be placed.
+	Adjusts the scale and checks for stacking.
+
+	@param ball the ball that is droped onto the scale
+	@param col the column based on the scales column count
+	@return event that has been triggered
+*/
 std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	if (col >= COL_COUNT || col < 0) {
+		// need to make this an exception!
 		return std::make_shared<Event>(Event::LOSS);
 	}
 	int dropRow = STACK_HEIGHT;
@@ -80,6 +106,12 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	}
 }
 
+/**
+	Checks whether the scale needs to be shifted.
+	When it's shifted, look for a ball to throw and throw it!
+
+	@return event that has been triggered
+*/
 std::shared_ptr<Event> Scale::adjust() {
 	std::shared_ptr<Event> event = std::make_shared<Event>(Event::NOTHING);
 	int oldStatus = this->status;
@@ -123,7 +155,9 @@ std::shared_ptr<Event> Scale::adjust() {
 	return event;
 }
 
-// eliminates possible "holes" in the stack
+/**
+	Checks for "holes" (destroyed balls) and fills the slot with a ball above this slot.
+*/
 void Scale::collapse() {
 	int i, j, k;
 	for (i = 0; i < COL_COUNT; i++) {
@@ -172,6 +206,13 @@ void Scale::render() {
 }
 
 // private functions
+
+/**
+	Checks if 5 balls with the same color are laying consecutively on each other.
+	If that's the case, add the weight of the top 4 balls to the fifths and remove them from the scale.
+
+	@param col the column based on the scale
+*/
 void Scale::stacking(int col) {
 	if (col >= COL_COUNT || col < 0) {
 		return;
@@ -210,6 +251,14 @@ void Scale::stacking(int col) {
 	}
 }
 
+/**
+	This function needs to be called after the scale has shifted (the status has changed).
+	It relocates the stacks according to the new status.
+	Since a stackUp Operation can kill the player, this is observed.
+
+	@param oldStatus the status prior to the shifting
+	@return whether the game is lost
+*/
 bool Scale::relocateStacks(int oldStatus) {
 	//printf("relocateStacks\n");
 	//frkn magic. some1 smarter than me needs to look at this.
@@ -246,6 +295,14 @@ bool Scale::relocateStacks(int oldStatus) {
 	return allRight;
 }
 
+/**
+	Puts all balls in the stack one position up.
+	When the stack is full, the function returns with a false.
+
+	@param col the column based on the scale
+	@param firstElem the row position of the first element to be altered
+	@return whether the operation was successfull
+*/
 bool Scale::stackUp(int col, int firstElem) {
 	if (stacks[col][STACK_HEIGHT - 1]) {
 		// top place is already occupied --> loss
@@ -264,6 +321,12 @@ bool Scale::stackUp(int col, int firstElem) {
 	}
 }
 
+/**
+	Puts all balls in the stack on position down.
+
+	@param col the column based on the scale
+	@param firstElem the row position of the first element to be altered
+*/
 void Scale::stackDown(int col, int firstElem) {
 	int i;
 	int firstBallSlot = this->firstBallSlot(col);
@@ -277,6 +340,12 @@ void Scale::stackDown(int col, int firstElem) {
 	}
 }
 
+/**
+	This function calculates the first slot for a ball based on the current status of the scale.
+
+	@param col the column based on the scale
+	@return the first slot that can be occupied by a ball
+*/
 int Scale::firstBallSlot(int col) {
 	if (this->status == 0) {
 		return 1;
@@ -289,6 +358,11 @@ int Scale::firstBallSlot(int col) {
 	}
 }
 
+/**
+	Calculates the new status based on the weights.
+
+	@return the new status
+*/
 int Scale::newStatus() {
 	int newStatus;
 	if (weights[0] == weights[1]) {
@@ -301,6 +375,13 @@ int Scale::newStatus() {
 	return newStatus;
 }
 
+/**
+	Removes the top ball from a stack.
+	If there is a ball, the weight is substracted.
+
+	@param col the column based on the scale
+	@return either a ball or a nullptr
+*/
 std::shared_ptr<Ball> Scale::getAndRemoveBallFromTop(int col) {
 	int i;
 	for (i = STACK_HEIGHT - 1; i >= 0; i--) {
@@ -315,7 +396,12 @@ std::shared_ptr<Ball> Scale::getAndRemoveBallFromTop(int col) {
 	return std::shared_ptr<Ball>(nullptr);
 }
 
+/**
+	Used to set the correct position for a ball
+
+	@param col the column based on the scale
+	@param row the row
+*/
 void Scale::setBallToPos(int col, int row) {
-	// TODO: 180 is the "Y-Offset" + 20 for visual reasons and 70 for a ball that can fly there
 	this->stacks[col][row]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + (STACK_HEIGHT - row) * Ball::BALL_HEIGHT);
 }

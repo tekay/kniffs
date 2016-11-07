@@ -6,13 +6,6 @@ Singleplayer::Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(
 	this->ballsPlaced = 0;
 	this->points = std::make_shared<unsigned int>(0);
 
-
-	//this->font = std::make_shared<SDL_Font>(TTF_OpenFont("resources/fonts/Roboto-Bold.ttf", 28));
-	/*if (!gFont) {
-		std::cout << "Failed to load font, error: " << TTF_GetError() << std::endl;
-		exit(13);
-	}*/
-
 	this->loader = std::make_unique<Loader>(gRenderer);
 	int wat = TOP_HEIGHT;
 	int wat2 = TOP_LEFT_OFFSET;

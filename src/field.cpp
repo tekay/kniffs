@@ -22,6 +22,16 @@ void Field::render() {
 	}
 }
 
+/**
+	Handles the ball after it has left the loader.
+	Since the scale can shift and throw a ball, we need to first set the correct start col.
+	Then, the target drop col is calculated and the ball is being droped into the correct scale.
+	This function is recursive!
+
+	@param ball the ball that is droped onto the scale
+	@param col the column based on the field
+	@return Whether the game is lost after this ball drop
+*/
 bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	std::array<int, 2> dropPos = this->getScaleAndColFromCol(col);
 	//printf("scale: %d, col: %d\n", dropPos[0], dropPos[1]);
@@ -40,7 +50,12 @@ bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	}
 }
 
-// returns false if game is lost
+/**
+	Handles the validation and chain reactions.
+	First, it check's whether something can be destroyed.
+
+	@return whether the game is lost
+*/
 bool Field::check() {
 	int i;
 	// check, if balls are going to be destroyed
@@ -67,7 +82,14 @@ bool Field::check() {
 }
 
 // private functions
-// returns whether something was destroyed
+
+/**
+	Checks if three balls with the same color are in a row.
+	If a "kniff" is found, it triggeres the destroying.
+	Since the field can heavily change, it needs to track wether something got destroyed to clean up the field afterwards.
+
+	@return whether something was destroyed
+*/
 bool Field::destroying() {
 	int i, j;
 	bool destroyedSomething = false;
@@ -95,6 +117,17 @@ bool Field::destroying() {
 	return destroyedSomething;
 }
 
+/**
+	Crawls from ball to ball with the same color and destroyes them.
+	It removes the ball referenced by col and row, adds the weight to the sumWeight and increases the counter.
+	Compares nearby slots to the currenct target, if they compare,
+	calls the function on this ball to crawl through the field.
+
+	@param col the column of the target
+	@param row the row of the target
+	@sumWeight the weight of the balls destroyed so far sumed up
+	@count the destroy counter
+*/
 void Field::destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWeight, std::shared_ptr<unsigned int> count) {
 	//std::cout << "destroying. col: " << col << ", row: " << row << std::endl;
 	std::array<int, 2> pos = this->getScaleAndColFromCol(col);
@@ -138,6 +171,10 @@ void Field::destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWe
 	}
 }
 
+/**
+	Let's the stacks on the scale collapse (check for "holes").
+	See Scales.
+*/
 void Field::collapseAndStack() {
 	int i;
 	for (i = 0; i < SCALE_COUNT; i++) {
@@ -146,12 +183,25 @@ void Field::collapseAndStack() {
 	}
 }
 
+/**
+	Calculates, which scale is responsible for the given col.
+	Also calculates the column in the scale.
+
+	@param col the column based on the field
+	@return the linked scale (ret[0]) and column based on the scale (ret[1])
+*/
 // [0] is the scale, [1] the col in the scale
 std::array<int, 2> Field::getScaleAndColFromCol(int col) {
 	std::array<int, 2> retArr = {col / 2, col % 2};
 	return retArr;
 }
 
+/**
+	Calculates the target column for a throw event.
+
+	@param event the throw event
+	@return the target drop column based on the field
+*/
 int Field::handleBallThrowing(std::shared_ptr<Event> event) {
 	int startCol = event->getStartCol();
 	int newDistance = event->getDistance();
