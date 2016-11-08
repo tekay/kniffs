@@ -6,22 +6,24 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(SOURCE_FILES
     src/ball.cpp
     src/ball.h
-		src/scale.cpp
-		src/scale.h
+    src/scale.cpp
+    src/scale.h
     src/field.cpp
     src/field.h
-		src/singleplayer.cpp
-		src/singleplayer.h
-		src/ballsource.cpp
-		src/ballsource.h
+    src/singleplayer.cpp
+    src/singleplayer.h
+    src/ballsource.cpp
+    src/ballsource.h
     src/lbutton.cpp
     src/lbutton.h
     src/loader.cpp
     src/loader.h
     src/ltexture.cpp
     src/ltexture.h
-		src/event.cpp
-		src/event.h
+    src/event.cpp
+    src/event.h
+    src/logger.cpp
+    src/logger.h
     src/main.cpp)
 
 # Find and include external libraries

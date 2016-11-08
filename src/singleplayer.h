@@ -6,6 +6,9 @@
 #include "ballsource.h"
 #include "field.h"
 
+extern int logLevel;
+extern const int LOGLEVEL_INFO;
+
 class Singleplayer {
 	public:
 		Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont);

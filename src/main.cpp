@@ -5,8 +5,10 @@ and may not be redistributed without written permission.*/
 /*#include "lbutton.h"
 #include "loader.h"*/
 #include "singleplayer.h"
+#include "logger.h"
 #include <iostream>
 #include <memory>
+#include <string>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 430;
@@ -121,6 +123,18 @@ void close() {
 }
 
 int main(int argc, char* args[]) {
+	// check args for loglevel
+	std::string infoString("--info");
+	std::string debugString("--debug");
+	int i;
+	for (i = 0; i < argc; i++) {
+		if (infoString.compare(args[i]) == 0) {
+			Logger::logLevel = Logger::INFO;
+		} else if (debugString.compare(args[i]) == 0) {
+			Logger::logLevel = Logger::DEBUG;
+		}
+	}
+
 	//Start up SDL and create window
 	if (!init()) {
 		std::cout << "Failed to initialize!" << std::endl;
