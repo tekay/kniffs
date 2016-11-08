@@ -1,6 +1,5 @@
 #include "ltexture.h"
 #include <iostream>
-#include <sstream>
 
 LTexture::LTexture(SDL_Renderer *gRenderer) : renderer(gRenderer) {
 	//Initialize
@@ -83,9 +82,7 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
 
 void LTexture::setTextFromInt(int val) {
 	SDL_Color textColor = {0, 0, 0};
-	std::stringstream ss1;
-	ss1 << val;
-	const char *chWeight = ss1.str().c_str();
+	const char *chWeight = std::to_string(val).c_str();
 	if (!this->loadFromRenderedText(chWeight, textColor)) {
 		std::cout << "failed to load from rendered text" << std::endl;
 	}
