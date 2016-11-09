@@ -128,7 +128,8 @@ std::shared_ptr<Event> Scale::adjust() {
 				event->setDirection(this->status);
 				event->setBall(maybeBall);
 				event->setStartCol(1);
-				int distance = weights[0] - weights[1];
+				// add weight from ball 'cause it already got removed
+				int distance = weights[0] - (weights[1] + maybeBall->getWeight());
 				event->setDistance(distance);
 			}
 		} else if (this->status == 2) {
@@ -140,7 +141,8 @@ std::shared_ptr<Event> Scale::adjust() {
 				event->setDirection(this->status);
 				event->setBall(maybeBall);
 				event->setStartCol(0);
-				int distance = weights[1] - weights[0];
+				// add weight from ball 'cause it already got removed
+				int distance = weights[1] - (weights[0] + maybeBall->getWeight());
 				event->setDistance(distance);
 			}
 		}
