@@ -87,7 +87,6 @@ std::shared_ptr<Event> Scale::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	int i;
 	for (i = this->firstBallSlot(col); i < STACK_HEIGHT; i++) {
 		if (!stacks[col][i]) {
-			//printf("ball in row: %d\n", i);
 			this->stacks[col][i] = ball;
 			//this->stacks[col][i]->setPos(this->leftOffset + col * Ball::BALL_WIDTH, this->topOffset + this->BALL_AREA_HEIGHT -  i * Ball::BALL_HEIGHT);
 			this->setBallToPos(col, i);
@@ -120,10 +119,8 @@ std::shared_ptr<Event> Scale::adjust() {
 	// conditions for a flying ball
 	if ((oldStatus != this->status) && (this->status != 0)) {
 		if (this->status == 1) {
-			//printf("%s\n", "ball throw to the left");
 			std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(1);
 			if (maybeBall) {
-				//printf("throw with ball\n");
 				event->setType(Event::THROW_BALL);
 				event->setDirection(this->status);
 				event->setBall(maybeBall);
@@ -134,9 +131,7 @@ std::shared_ptr<Event> Scale::adjust() {
 			}
 		} else if (this->status == 2) {
 			std::shared_ptr<Ball> maybeBall = this->getAndRemoveBallFromTop(0);
-			//printf("%s\n", "ball throw to the right");
 			if (maybeBall) {
-				//printf("throw with ball\n");
 				event->setType(Event::THROW_BALL);
 				event->setDirection(this->status);
 				event->setBall(maybeBall);
@@ -166,11 +161,9 @@ void Scale::collapse() {
 		for (j = this->firstBallSlot(i); j < STACK_HEIGHT; j++) {
 			if (!this->stacks[i][j] && j < (STACK_HEIGHT - 1)) {
 				// possibly hole in the stack. look for a ball to fill it
-				//printf("found a hole. searching for ball to fill\n");
 				for (k = j + 1; k < STACK_HEIGHT; k++) {
 					if (this->stacks[i][k]) {
 						// found a ball, let's reallocate it
-						//printf("found smth to fill it\n");
 						this->stacks[i][j] = this->stacks[i][k];
 						this->stacks[i][k]->dropDown();
 						this->setBallToPos(i, j);

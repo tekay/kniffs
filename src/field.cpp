@@ -1,4 +1,5 @@
 #include "field.h"
+#include "logger.h"
 #include <iostream>
 #include <sstream>
 
@@ -34,16 +35,18 @@ void Field::render() {
 */
 bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 	std::array<int, 2> dropPos = this->getScaleAndColFromCol(col);
-	//printf("scale: %d, col: %d\n", dropPos[0], dropPos[1]);
+	Logger::info("dropping a ball in column " + std::to_string(col) + " (scale " + std::to_string(dropPos[0]) + " in column: " + std::to_string(dropPos[1]) + ")");
 	std::shared_ptr<Event> event = this->scales[dropPos[0]]->dropBallAt(ball, dropPos[1]);
 	if (event->getType() == Event::LOSS) {
+		Logger::info("game is lost");
 		return false;
 	} else if (event->getType() == Event::THROW_BALL) {
 		// since the startCol is set inside the scale, we need to set the correct startCol for the event
 		int correctStartCol = dropPos[0] * SCALE_COL_COUNT + event->getStartCol();
 		event->setStartCol(correctStartCol);
 		int newDropCol = this->handleBallThrowing(event);
-		//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
+		printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
+		Logger::info("throw event: ball w/ color: " + std::to_string(event->getBall()->getColor()) + ", destination column: " + std::to_string(newDropCol));
 		return this->dropBallAt(event->getBall(), newDropCol);
 	} else {
 		return true;
@@ -61,19 +64,20 @@ bool Field::check() {
 	// check, if balls are going to be destroyed
 	while (this->destroying()) {
 		// if balls got destroyed, stacks need to collapse/stack
-		//printf("found smth to destroy, collapse stacks!\n");
+		Logger::info("destroyed some balls, now collapsing the stacks");
 		this->collapseAndStack();
 		// since we destroyed some balls, scales need to be "rechecked", maybe balls will be thrown
 		for (i = 0; i < SCALE_COUNT; i++) {
 			std::shared_ptr<Event> event = this->scales[i]->adjust();
 			if (event->getType() == Event::LOSS) {
+				Logger::info("game is lost");
 				return false;
 			} else if (event->getType() == Event::THROW_BALL) {
 				// since the startCol is set inside the scale, we need to set the correct startCol for the event
 				int correctStartCol = i * SCALE_COL_COUNT + event->getStartCol();
 				event->setStartCol(correctStartCol);
 				int newDropCol = this->handleBallThrowing(event);
-				//printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
+				Logger::info("throw event: ball w/ color: " + std::to_string(event->getBall()->getColor()) + ", destination column: " + std::to_string(newDropCol));
 				return this->dropBallAt(event->getBall(), newDropCol);
 			}
 		}
@@ -129,7 +133,7 @@ bool Field::destroying() {
 	@count the destroy counter
 */
 void Field::destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWeight, std::shared_ptr<unsigned int> count) {
-	//std::cout << "destroying. col: " << col << ", row: " << row << std::endl;
+	Logger::info("destroying ball at col: " + std::to_string(col) + ", row: " + std::to_string(row));
 	std::array<int, 2> pos = this->getScaleAndColFromCol(col);
 	// temporarily get current Ball
 	std::shared_ptr<Ball> cBall = this->scales[pos[0]]->getAndRemoveBallAt(pos[1], row);
