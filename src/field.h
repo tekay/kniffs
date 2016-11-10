@@ -4,6 +4,7 @@
 #include "ltexture.h"
 #include "loader.h"
 #include "ball.h"
+#include "standardball.h"
 #include "scale.h"
 #include "event.h"
 #include <memory>

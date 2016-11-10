@@ -2,6 +2,7 @@
 #define BALLSOURCE_H__
 
 #include "ball.h"
+#include "standardball.h"
 #include <memory>
 
 class BallSource {

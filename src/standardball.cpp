@@ -1,8 +1,8 @@
-#include "ball.h"
+#include "standardball.h"
 #include <iostream>
 #include <sstream>
 
-Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : renderer(gRenderer), font(gFont), weight(weight) {
+StandardBall::StandardBall(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : renderer(gRenderer), font(gFont), weight(weight) {
 	if (color < COLOR_COUNT) this->color = color;
 	else this->color = COLOR_COUNT - 1;
 	SDL_Color textColor = {0, 0, 0};
@@ -47,7 +47,7 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : re
 	std::stringstream ss;
 	ss << "resources/ball_" << chColor << ".png";
 	if (!this->texture->loadFromFile(ss.str())) {
-		std::cout << "error loading ball " << chColor << std::endl;
+		std::cout << "error loading StandardBall " << chColor << std::endl;
 		exit(13);
 	}
 	this->textTexture->setFont(gFont);
@@ -60,47 +60,47 @@ Ball::Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight) : re
 	}
 }
 
-Ball::~Ball() {
+StandardBall::~StandardBall() {
 	this->texture.reset();
 	this->textTexture.reset();
 }
 
-bool Ball::compare(std::shared_ptr<Ball> other) {
+bool StandardBall::compare(std::shared_ptr<Ball> other) {
 	if (!other) return false;
 	return this->color == other->getColor();
 }
 
-void Ball::render() {
+void StandardBall::render() {
 	this->texture->render(xPos, yPos);
 	this->textTexture->render(xPos + 15, yPos + 5);
 }
 
-void Ball::setXPos(int x) {
+void StandardBall::setXPos(int x) {
 	xPos = x;
 }
 
-int Ball::getXPos() {
+int StandardBall::getXPos() {
 	return this->xPos;
 }
 
-void Ball::setYPos(int y) {
+void StandardBall::setYPos(int y) {
 	this->yPos = y;
 }
 
-int Ball::getYPos() {
+int StandardBall::getYPos() {
 	return this->yPos;
 }
 
-void Ball::setPos(int x, int y) {
+void StandardBall::setPos(int x, int y) {
 	xPos = x;
 	yPos = y;
 }
 
-int Ball::getColor() {
+int StandardBall::getColor() {
 	return this->color;
 }
 
-void Ball::setWeight(int w) {
+void StandardBall::setWeight(int w) {
 	this->weight = w;
 	std::stringstream ss1;
 	ss1 << this->weight;
@@ -110,11 +110,11 @@ void Ball::setWeight(int w) {
 	}
 }
 
-int Ball::getWeight() {
+int StandardBall::getWeight() {
 	return this->weight;
 }
 
-void Ball::addWeight(int w) {
+void StandardBall::addWeight(int w) {
 	this->weight += w;
 	std::stringstream ss1;
 	ss1 << this->weight;
@@ -124,14 +124,14 @@ void Ball::addWeight(int w) {
 	}
 }
 
-void Ball::collapse() {
+void StandardBall::collapse() {
 
 }
 
-void Ball::dropDown() {
+void StandardBall::dropDown() {
 
 }
 
-void Ball::destroy() {
+void StandardBall::destroy() {
 
 }

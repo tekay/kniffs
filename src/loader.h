@@ -3,6 +3,7 @@
 
 #include "ltexture.h"
 #include "ball.h"
+#include "standardball.h"
 
 class Loader {
 	public:

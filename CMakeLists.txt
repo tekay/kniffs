@@ -4,7 +4,8 @@ project(kniffs)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 set(SOURCE_FILES
-    src/ball.cpp
+    src/standardball.h
+    src/standardball.cpp
     src/ball.h
     src/scale.cpp
     src/scale.h

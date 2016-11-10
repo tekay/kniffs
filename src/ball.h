@@ -10,36 +10,21 @@ class Ball {
 		static const int BALL_HEIGHT = 50;
 		static const int COLOR_COUNT = 11;
 
-		Ball(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight);
-		~Ball();
-
-		bool compare(std::shared_ptr<Ball> other);
-		void move();
-		void render();
-		void setXPos(int x);
-		int getXPos();
-		void setYPos(int y);
-		int getYPos();
-		void setPos(int x, int y);
-		int getColor();
-		void setWeight(int w);
-		int getWeight();
-		void addWeight(int w);
+		virtual bool compare(std::shared_ptr<Ball> other) = 0;
+		virtual void render() = 0;
+		virtual void setXPos(int x) = 0;
+		virtual int getXPos() = 0;
+		virtual void setYPos(int y) = 0;
+		virtual int getYPos() = 0;
+		virtual void setPos(int x, int y) = 0;
+		virtual int getColor() = 0;
+		virtual void setWeight(int w) = 0;
+		virtual int getWeight() = 0;
+		virtual void addWeight(int w) = 0;
 
 		// graphical stuff
-		void collapse();
-		void dropDown();
-		void destroy();
-
-	private:
-		int xPos;
-		int yPos;
-		int weight;
-		int color;
-		std::unique_ptr<LTexture> texture;
-		std::unique_ptr<LTexture> textTexture;
-		SDL_Color textColor;
-		SDL_Renderer *renderer;
-		TTF_Font *font;
+		virtual void collapse() = 0;
+		virtual void dropDown() = 0;
+		virtual void destroy() = 0;
 };
 #endif // BALL_H__

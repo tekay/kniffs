@@ -31,7 +31,9 @@ std::shared_ptr<Ball> BallSource::getBallAt(int col, int level) {
 std::shared_ptr<Ball> BallSource::makeNewBall(int level) {
 	int newColor = (rand() % (int)(level));
 	int newWeight = (rand() % (int)(level + 1));
-	return std::make_shared<Ball>(this->renderer, this->font, newColor, newWeight);
+	return std::make_shared<StandardBall>(this->renderer, this->font, newColor, newWeight);
+	//std::shared_ptr<Ball> retBall = std::make_shared<StandardBall>(this->renderer, this->font, newColor, newWeight);
+	//return retBall;
 }
 
 void BallSource::render() {
