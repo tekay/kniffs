@@ -6,12 +6,12 @@ int Logger::logLevel = 0;
 
 void Logger::info(std::string msg) {
 	if (Logger::logLevel >= INFO) {
-		std::cout << msg << std::endl;
+		std::cout << "INFO: " << msg << std::endl;
 	}
 }
 
 void Logger::debug(std::string msg) {
 	if (Logger::logLevel >= DEBUG) {
-		std::cout << msg << std::endl;
+		std::cout << "DEBUG: " << msg << std::endl;
 	}
 }
