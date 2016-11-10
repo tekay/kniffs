@@ -1,5 +1,6 @@
 #include "singleplayer.h"
 #include <iostream>
+#include "logger.h"
 
 Singleplayer::Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(gRenderer), font(gFont) {
 	this->level = 4;
@@ -63,6 +64,7 @@ int Singleplayer::handleKeyEvents(SDL_Event &e) {
 					if (this->field->dropBallAt(ball, currentCol)) {
 						if(++this->ballsPlaced % 50 == 0) {
 							// drop a star
+							Logger::info("level up! level is now: " + std::to_string(this->level));
 							this->level++;
 						};
 						this->ballsPlacedTexture->setTextFromInt(ballsPlaced);
