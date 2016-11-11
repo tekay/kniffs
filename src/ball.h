@@ -10,6 +10,10 @@ class Ball {
 		static const int BALL_HEIGHT = 50;
 		static const int COLOR_COUNT = 11;
 
+		enum Specials {
+			JOKER = 100
+		};
+
 		virtual bool compare(std::shared_ptr<Ball> other) = 0;
 		virtual void render() = 0;
 		virtual void setXPos(int x) = 0;
