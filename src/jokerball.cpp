@@ -11,7 +11,7 @@ JokerBall::JokerBall(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(gRende
 }
 
 JokerBall::~JokerBall() {
-
+	this->texture.reset();
 }
 
 bool JokerBall::compare(std::shared_ptr<Ball> other) {
