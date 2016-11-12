@@ -6,7 +6,7 @@
 
 class JokerBall : public StandardBall {
 	public:
-		JokerBall(SDL_Renderer *gRenderer, TTF_Font *gFont);
+		JokerBall(SDL_Renderer *gRenderer);
 		~JokerBall();
 
 		virtual bool compare(std::shared_ptr<Ball> other);

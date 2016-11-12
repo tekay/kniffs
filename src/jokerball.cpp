@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-JokerBall::JokerBall(SDL_Renderer *gRenderer, TTF_Font *gFont) : StandardBall(gRenderer, gFont) {
+JokerBall::JokerBall(SDL_Renderer *gRenderer) : StandardBall(gRenderer) {
 	this->color = Specials::JOKER;
 	this->weight = 0;
 	this->texture = std::make_unique<LTexture>(gRenderer);
