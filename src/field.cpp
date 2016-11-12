@@ -45,7 +45,6 @@ bool Field::dropBallAt(std::shared_ptr<Ball> ball, int col) {
 		int correctStartCol = dropPos[0] * SCALE_COL_COUNT + event->getStartCol();
 		event->setStartCol(correctStartCol);
 		int newDropCol = this->handleBallThrowing(event);
-		printf("throw event: ball color: %d, dropCol: %d\n", event->getBall()->getColor(), newDropCol);
 		Logger::info("throw event: ball w/ color: " + std::to_string(event->getBall()->getColor()) + ", destination column: " + std::to_string(newDropCol));
 		return this->dropBallAt(event->getBall(), newDropCol);
 	} else {
