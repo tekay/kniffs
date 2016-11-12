@@ -6,6 +6,7 @@
 class StandardBall : public Ball {
 	public:
 		StandardBall(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, int weight);
+		StandardBall(SDL_Renderer *gRenderer, TTF_Font *gFont);
 		~StandardBall();
 
 		virtual bool compare(std::shared_ptr<Ball> other);
@@ -25,7 +26,7 @@ class StandardBall : public Ball {
 		virtual void dropDown();
 		virtual void destroy();
 
-	private:
+	protected:
 		int xPos;
 		int yPos;
 		int weight;

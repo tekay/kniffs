@@ -60,6 +60,10 @@ StandardBall::StandardBall(SDL_Renderer *gRenderer, TTF_Font *gFont, int color, 
 	}
 }
 
+StandardBall::StandardBall(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(gRenderer), font(gFont) {
+	textColor = {0, 0, 0};
+}
+
 StandardBall::~StandardBall() {
 	this->texture.reset();
 	this->textTexture.reset();
