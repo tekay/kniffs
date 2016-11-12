@@ -4,13 +4,13 @@
 
 Singleplayer::Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(gRenderer), font(gFont) {
 	this->level = 4;
-	this->ballsPlaced = 0;
+	this->ballsPlaced = std::make_shared<unsigned int>(0);
 	this->points = std::make_shared<unsigned int>(0);
 
 	this->loader = std::make_unique<Loader>(gRenderer);
 	int wat = TOP_HEIGHT;
 	int wat2 = TOP_LEFT_OFFSET;
-	this->ballSource = std::make_unique<BallSource>(gRenderer, this->font, wat2, wat);
+	this->ballSource = std::make_unique<BallSource>(gRenderer, this->font, this->ballsPlaced, wat2, wat);
 	wat = FIELD_TOP_OFFSET;
 	wat2 = FIELD_LEFT_OFFSET;
 	this->field = std::make_unique<Field>(gRenderer, this->font, this->points, wat2, wat);
@@ -30,7 +30,7 @@ Singleplayer::Singleplayer(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(
 
 	ballsPlacedTexture = std::make_unique<LTexture>(gRenderer);;
 	ballsPlacedTexture->setFont(gFont);
-	this->ballsPlacedTexture->setTextFromInt(ballsPlaced);
+	this->ballsPlacedTexture->setTextFromInt(*this->ballsPlaced);
 	pointsTexture = std::make_unique<LTexture>(gRenderer);;
 	pointsTexture->setFont(gFont);
 	this->pointsTexture->setTextFromInt(*this->points);
@@ -62,12 +62,12 @@ int Singleplayer::handleKeyEvents(SDL_Event &e) {
 				if (ball) {
 					// everything's fine
 					if (this->field->dropBallAt(ball, currentCol)) {
-						if(++this->ballsPlaced % 50 == 0) {
+						if((++*this->ballsPlaced) % 50 == 0) {
 							// drop a star
 							Logger::info("level up! level is now: " + std::to_string(this->level));
 							this->level++;
 						};
-						this->ballsPlacedTexture->setTextFromInt(ballsPlaced);
+						this->ballsPlacedTexture->setTextFromInt(*this->ballsPlaced);
 						if (!this->field->check()) {
 							retVal = 1;
 						}

@@ -42,7 +42,7 @@ class Singleplayer {
 		std::unique_ptr<Loader> loader;
 		std::unique_ptr<BallSource> ballSource;
 		std::unique_ptr<Field> field;
-		unsigned int ballsPlaced;
+		std::shared_ptr<unsigned int> ballsPlaced;
 		std::shared_ptr<unsigned int> points;
 		unsigned int level;
 
