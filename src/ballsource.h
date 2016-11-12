@@ -3,11 +3,12 @@
 
 #include "ball.h"
 #include "standardball.h"
+#include "jokerball.h"
 #include <memory>
 
 class BallSource {
 	public:
-		BallSource(SDL_Renderer *gRenderer, TTF_Font *gFont, int leftOffset, int topOffset);
+		BallSource(SDL_Renderer *gRenderer, TTF_Font *gFont, std::shared_ptr<unsigned int> ballsPlaced, int leftOffset, int topOffset);
 		~BallSource();
 		std::shared_ptr<Ball> getBallAt(int col, int level);
 		void render();
@@ -22,6 +23,7 @@ class BallSource {
 
 		// important
 		std::shared_ptr<Ball> newBalls[COL_COUNT][NEW_BALLS_ROW_COUNT];
+		std::shared_ptr<unsigned int> ballsPlaced;
 
 		// graphics
 		int leftOffset;
