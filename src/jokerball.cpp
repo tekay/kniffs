@@ -17,10 +17,15 @@ JokerBall::~JokerBall() {
 }
 
 bool JokerBall::compare(std::shared_ptr<Ball> other) {
-	if (other) {
-		return true;
+	// check whether this ball has "morphed" into a ball with normal color for destroying
+	if (this->color == Specials::JOKER) {
+		if (other) {
+			return true;
+		} else {
+			return false;
+		}
 	} else {
-		return false;
+		StandardBall::compare(other);
 	}
 }
 
