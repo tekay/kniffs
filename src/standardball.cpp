@@ -65,7 +65,7 @@ StandardBall::StandardBall(SDL_Renderer *gRenderer, TTF_Font *gFont) : renderer(
 }
 
 StandardBall::StandardBall(SDL_Renderer *gRenderer) : renderer(gRenderer) {
-	
+
 }
 
 StandardBall::~StandardBall() {
@@ -102,6 +102,10 @@ int StandardBall::getYPos() {
 void StandardBall::setPos(int x, int y) {
 	xPos = x;
 	yPos = y;
+}
+
+void StandardBall::setColor(int color) {
+	this->color = color;
 }
 
 int StandardBall::getColor() {

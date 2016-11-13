@@ -29,7 +29,7 @@ std::shared_ptr<Ball> BallSource::getBallAt(int col, int level) {
 }
 
 std::shared_ptr<Ball> BallSource::makeNewBall(int level) {
-	if (*this->ballsPlaced % 2 == 0) {
+	if (*this->ballsPlaced > 50 && *this->ballsPlaced % 10 == 0) {
 		return std::make_shared<JokerBall>(this->renderer);
 	} else {
 		int newColor = (rand() % (int)(level));

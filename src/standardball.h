@@ -17,6 +17,7 @@ class StandardBall : public Ball {
 		virtual void setYPos(int y);
 		virtual int getYPos();
 		virtual void setPos(int x, int y);
+		virtual void setColor(int color);
 		virtual int getColor();
 		virtual void setWeight(int w);
 		virtual int getWeight();

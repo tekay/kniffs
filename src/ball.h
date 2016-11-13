@@ -21,6 +21,7 @@ class Ball {
 		virtual void setYPos(int y) = 0;
 		virtual int getYPos() = 0;
 		virtual void setPos(int x, int y) = 0;
+		virtual void setColor(int color) = 0;
 		virtual int getColor() = 0;
 		virtual void setWeight(int w) = 0;
 		virtual int getWeight() = 0;
