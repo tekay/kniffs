@@ -104,9 +104,18 @@ bool Field::destroying() {
 			std::shared_ptr<Ball> currentBall = this->scales[currentPos[0]]->getBallAt(currentPos[1], j);
 			if (currentBall) {
 				std::array<int, 2> leftPos = this->getScaleAndColFromCol(i - 1);
+				std::shared_ptr<Ball> leftBall = this->scales[leftPos[0]]->getBallAt(leftPos[1], j);
 				std::array<int, 2> rightPos = this->getScaleAndColFromCol(i + 1);
-				if (currentBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], j))
-						&& currentBall->compare(this->scales[rightPos[0]]->getBallAt(leftPos[1], j))) {
+				std::shared_ptr<Ball> rightBall = this->scales[rightPos[0]]->getBallAt(rightPos[1], j);
+				if (currentBall->compare(leftBall) && currentBall->compare(rightBall)) {
+					// if the currentBall is a joker, we need to set a color for him so that destroyCrawler works properly
+					if (currentBall->getColor() == Ball::Specials::JOKER) {
+						if (leftBall->getColor() != Ball::Specials::JOKER) {
+							currentBall->setColor(leftBall->getColor());
+						} else if (rightBall->getColor() != Ball::Specials::JOKER) {
+							currentBall->setColor(rightBall->getColor());
+						}
+					}
 					// found a kniff --> destrooooooooy
 					std::shared_ptr<unsigned int> sumWeight = std::make_shared<unsigned int>(0);
 					std::shared_ptr<unsigned int> count = std::make_shared<unsigned int>(0);
@@ -144,28 +153,44 @@ void Field::destroyCrawler(int col, int row, std::shared_ptr<unsigned int> sumWe
 		if (col > 0) {
 			// check left
 			std::array<int, 2> leftPos = this->getScaleAndColFromCol(col - 1);
-			if (cBall->compare(this->scales[leftPos[0]]->getBallAt(leftPos[1], row))) {
+			std::shared_ptr<Ball> leftBall = this->scales[leftPos[0]]->getBallAt(leftPos[1], row);
+			if (cBall->compare(leftBall)) {
+				if (leftBall->getColor() == Ball::Specials::JOKER) {
+					leftBall->setColor(cBall->getColor());
+				}
 				this->destroyCrawler(col - 1, row, sumWeight, count);
 			}
 		}
 		if ((col + 1) < (SCALE_COUNT * SCALE_COL_COUNT)) {
 			// check right
 			std::array<int, 2> rightPos = this->getScaleAndColFromCol(col + 1);
-			if (cBall->compare(this->scales[rightPos[0]]->getBallAt(rightPos[1], row))) {
+			std::shared_ptr<Ball> rightBall = this->scales[rightPos[0]]->getBallAt(rightPos[1], row);
+			if (cBall->compare(rightBall)) {
+				if (rightBall->getColor() == Ball::Specials::JOKER) {
+					rightBall->setColor(cBall->getColor());
+				}
 				this->destroyCrawler(col + 1, row, sumWeight, count);
 			}
 		}
 		if (row > 0) {
 			// check "down"
 			std::array<int, 2> bottomPos = this->getScaleAndColFromCol(col);
-			if (cBall->compare(this->scales[bottomPos[0]]->getBallAt(bottomPos[1], row - 1))) {
+			std::shared_ptr<Ball> bottomBall = this->scales[bottomPos[0]]->getBallAt(bottomPos[1], row);
+			if (cBall->compare(bottomBall)) {
+				if (bottomBall->getColor() == Ball::Specials::JOKER) {
+					bottomBall->setColor(cBall->getColor());
+				}
 				this->destroyCrawler(col, row - 1, sumWeight, count);
 			}
 		}
 		if ((row + 1) < STACK_HEIGHT) {
 			// check up
 			std::array<int, 2> upPos = this->getScaleAndColFromCol(col);
-			if (cBall->compare(this->scales[upPos[0]]->getBallAt(upPos[1], row + 1))) {
+			std::shared_ptr<Ball> upBall = this->scales[upPos[0]]->getBallAt(upPos[1], row);
+			if (cBall->compare(upBall)) {
+				if (upBall->getColor() == Ball::Specials::JOKER) {
+					upBall->setColor(cBall->getColor());
+				}
 				this->destroyCrawler(col, row + 1, sumWeight, count);
 			}
 		}
